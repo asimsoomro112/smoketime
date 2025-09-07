@@ -171,13 +171,6 @@ const SearchIcon = () => (
   </svg>
 );
 
-// Heart SVG
-const HeartIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.933 0-3.63 1.104-4.312 2.753-.404.94-.972 1.838-1.745 2.651a1.2 1.2 0 0 1-.892.428h-.001c-.347 0-.687-.137-.939-.389l-2.022-2.022c-1.353-1.352-3.541-1.352-4.894 0-1.352 1.352-1.352 3.54 0 4.892l4.892 4.893c1.352 1.352 3.541 1.352 4.893 0l4.892-4.893c1.352-1.353 1.352-3.541 0-4.893Z" />
-  </svg>
-);
-
 // Close SVG
 const CloseIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
