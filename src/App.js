@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 
 // Product data with pre-filled image URLs
 const productsData = [
@@ -70,7 +70,7 @@ const getCategoryIcon = (iconName) => {
     case 'vape':
       return (
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor">
-          <path d="M432 0c-44.2 0-80 35.8-80 80V96h16c26.5 0 48 21.5 48 48s-21.5 48-48 48H352V304c0 30.2-20.3 55.7-49.3 62.4c-4.4 1-8.7 2.4-12.7 4c-11.8 4.6-23.4 10.5-34.4 17.5c-6.8 4.4-13.3 9.3-19.4 14.6c-1.8 1.6-3.6 3.2-5.3 4.9c-4.7 4.7-9.1 9.7-13.1 15c-1.7 2.3-3.3 4.6-4.9 6.9c-1.8 2.7-3.6 5.3-5.1 8.2c-1.8 3.5-3.3 7-4.5 10.8c-1.3 3.9-2.3 7.8-3.1 11.8c-3.4 18.5-12.7 36.6-27.1 51.1c-14.4 14.4-32.5 23.8-51.1 27.1c-3.9 .7-7.9 1.8-11.8 3.1c-2.9 1.2-5.6 2.4-8.2 4.2c-2.3 1.6-4.6 3.3-6.9 4.9c-5.2 3.6-10.3 7.6-15 13.1c-1.7 1.9-3.4 3.6-4.9 5.3c-4.6 6-9.5 12.5-14.6 19.4c-7.1 11.2-13 22.8-17.5 34.4c-1.6 4-3 8.3-4.1 12.7c-6.8 29.1-32.3 49.3-62.4 49.3H0V432c0-8.8 7.2-16 16-16H32c8.8 0 16 7.2 16 16v48h48c8.8 0 16 7.2 16 16s-7.2 16-16 16H48 32c-17.7 0-32-14.3-32-32V432 0z"/>
+          <path d="M432 0c-44.2 0-80 35.8-80 80V96h16c26.5 0 48 21.5 48 48s-21.5 48-48 48H352V304c0 30.2-20.3 55.7-49.3 62.4c-4.4 1-8.7 2.4-12.7 4c-11.8 4.6-23.4 10.5-34.4 17.5c-6.8 4.4-13.3 9.3-19.4 14.6c-1.8 1.6-3.6 3.2-5.3 4.9c-4.7 4.7-9.1 9.7-13.1 15c-1.7 2.3-3.3 4.6-4.9 6.9c-1.8 2.7-3.6 5.3-5.1 8.2c-1.8 3.5-3.3 7-4.5 10.8c-1.3 3.9-2.3 7.8-3.1 11.8c-3.4 18.5-12.7 36.6-27.1 51.1c-14.4 14.4-32.5 23.8-51.1 27.1c-3.9 .7-7.9 1.8-11.8 3.1c-2.9 1.2-5.6 2.4-8.2 4.2c-2.3 1.6-4.6 3.3-4.9 5.3c-4.6 6-9.5 12.5-14.6 19.4c-7.1 11.2-13 22.8-17.5 34.4c-1.6 4-3 8.3-4.1 12.7c-6.8 29.1-32.3 49.3-62.4 49.3H0V432c0-8.8 7.2-16 16-16H32c8.8 0 16 7.2 16 16v48h48c8.8 0 16 7.2 16 16s-7.2 16-16 16H48 32c-17.7 0-32-14.3-32-32V432 0z"/>
         </svg>
       );
     case 'accessories':
@@ -131,8 +131,8 @@ const App = () => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
-  const [products, setProducts] = useState(productsData);
-  const [categories, setCategories] = useState(categoriesData);
+  const [products] = useState(productsData);
+  const [categories] = useState(categoriesData);
 
   // Load cart from localStorage on initial render
   useEffect(() => {
@@ -468,10 +468,10 @@ const App = () => {
     <header className="sticky top-0 z-50 py-4 px-6 sm:px-8 border-b border-white/10 backdrop-blur-md bg-white/5">
       <div className="container mx-auto flex flex-col sm:flex-row items-center justify-between">
         {/* Logo */}
-        <div className="flex items-center space-x-2 cursor-pointer mb-4 sm:mb-0" onClick={() => onNavigate('home')}>
+        <button className="flex items-center space-x-2 cursor-pointer mb-4 sm:mb-0" onClick={() => onNavigate('home')}>
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-leaf w-8 h-8 text-fuchsia-400"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.4 18.5 4.5c.7.1 1.4.2 2.1.3a2 2 0 0 0 1.5-2.4c-.1-.7-.8-1.3-1.5-1.4C16.1.7 15.1 2 11 8c-.8.5-1.5 1-2.2 1.5a6 6 0 0 0 3 9.5c.3.2.6.3 1 .5c.2-.2.4-.3.7-.6c-.2-.2-.5-.4-.7-.6-.3-.3-.6-.5-.9-.8z"/></svg>
           <span className="text-xl font-bold text-fuchsia-100 font-curly">Smoke Time</span>
-        </div>
+        </button>
 
         {/* Search Bar */}
         <div className="relative w-full max-w-sm sm:max-w-xs md:max-w-md mx-auto">
@@ -492,29 +492,29 @@ const App = () => {
 
         {/* Desktop Navigation */}
         <nav className="hidden sm:flex items-center space-x-8 mt-4 sm:mt-0">
-          <a onClick={() => onNavigate('home')} className="flex items-center text-fuchsia-100 hover:text-fuchsia-400 transition-colors duration-200 cursor-pointer">
+          <button onClick={() => onNavigate('home')} className="flex items-center text-fuchsia-100 hover:text-fuchsia-400 transition-colors duration-200 cursor-pointer">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2" size={20}><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home
-          </a>
-          <a onClick={() => onNavigate('shop')} className="flex items-center text-fuchsia-100 hover:text-fuchsia-400 transition-colors duration-200 cursor-pointer">
+          </button>
+          <button onClick={() => onNavigate('shop')} className="flex items-center text-fuchsia-100 hover:text-fuchsia-400 transition-colors duration-200 cursor-pointer">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2" size={20}><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.4 18.5 4.5c.7.1 1.4.2 2.1.3a2 2 0 0 0 1.5-2.4c-.1-.7-.8-1.3-1.5-1.4C16.1.7 15.1 2 11 8c-.8.5-1.5 1-2.2 1.5a6 6 0 0 0 3 9.5c.3.2.6.3 1 .5c.2-.2.4-.3.7-.6c-.2-.2-.5-.4-.7-.6-.3-.3-.6-.5-.9-.8z"/></svg>Shop
-          </a>
-          <a onClick={() => onNavigate('categories')} className="flex items-center text-fuchsia-100 hover:text-fuchsia-400 transition-colors duration-200 cursor-pointer">
+          </button>
+          <button onClick={() => onNavigate('categories')} className="flex items-center text-fuchsia-100 hover:text-fuchsia-400 transition-colors duration-200 cursor-pointer">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2" size={20}><path d="M2.5 17a6 6 0 0 0 4.25-10.3A6 6 0 0 0 11.5 4c.3 0 .7.1 1 .2A6 6 0 0 1 20 5a6 6 0 0 1 0 12c-2.4 0-5.1-.9-7.1-2.9A6 6 0 0 0 2.5 17Z"/><path d="M14.5 9c-.8.8-2 .8-2.8 0"/><path d="m17 12-2-2"/><path d="m14 14-2-2"/><path d="m11 11-2-2"/></svg>
             Categories
-          </a>
+          </button>
         </nav>
 
         {/* Icons and Mobile Menu Button */}
         <div className="flex items-center space-x-4 mt-4 sm:mt-0">
-          <div className="relative cursor-pointer" onClick={() => onNavigate('cart')}>
+          <button className="relative cursor-pointer" onClick={() => onNavigate('cart')}>
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-shopping-cart text-fuchsia-200 hover:text-fuchsia-400 transition-colors duration-200" ><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
             {totalItems > 0 && (
               <span className="absolute -top-2 -right-2 bg-fuchsia-600 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">{totalItems}</span>
             )}
-          </div>
-          <div className="relative cursor-pointer">
+          </button>
+          <button className="relative cursor-pointer">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-user text-fuchsia-200 hover:text-fuchsia-400 transition-colors duration-200" ><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          </div>
+          </button>
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="text-fuchsia-200 sm:hidden transition-transform duration-200"
@@ -537,22 +537,22 @@ const App = () => {
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-x" size={28}><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
           </button>
-          <a onClick={() => onNavigate('home')} className="flex items-center text-fuchsia-100 text-lg font-semibold hover:text-fuchsia-400 transition-colors duration-200 w-full">
+          <button onClick={() => onNavigate('home')} className="flex items-center text-fuchsia-100 text-lg font-semibold hover:text-fuchsia-400 transition-colors duration-200 w-full">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-home mr-3" ><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Home
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chevron-right ml-auto" ><path d="m9 18 6-6-6-6"/></svg>
-          </a>
-          <a onClick={() => onNavigate('shop')} className="flex items-center text-fuchsia-100 text-lg font-semibold hover:text-fuchsia-400 transition-colors duration-200 w-full">
+          </button>
+          <button onClick={() => onNavigate('shop')} className="flex items-center text-fuchsia-100 text-lg font-semibold hover:text-fuchsia-400 transition-colors duration-200 w-full">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-leaf mr-3" ><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.4 18.5 4.5c.7.1 1.4.2 2.1.3a2 2 0 0 0 1.5-2.4c-.1-.7-.8-1.3-1.5-1.4C16.1.7 15.1 2 11 8c-.8.5-1.5 1-2.2 1.5a6 6 0 0 0 3 9.5c.3.2.6.3 1 .5c.2-.2.4-.3.7-.6c-.2-.2-.5-.4-.7-.6-.3-.3-.6-.5-.9-.8z"/></svg> Shop
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chevron-right ml-auto" ><path d="m9 18 6-6-6-6"/></svg>
-          </a>
-          <a onClick={() => onNavigate('categories')} className="flex items-center text-fuchsia-100 text-lg font-semibold hover:text-fuchsia-400 transition-colors duration-200 w-full">
+          </button>
+          <button onClick={() => onNavigate('categories')} className="flex items-center text-fuchsia-100 text-lg font-semibold hover:text-fuchsia-400 transition-colors duration-200 w-full">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-sparkles mr-3" ><path d="M2.5 17a6 6 0 0 0 4.25-10.3A6 6 0 0 0 11.5 4c.3 0 .7.1 1 .2A6 6 0 0 1 20 5a6 6 0 0 1 0 12c-2.4 0-5.1-.9-7.1-2.9A6 6 0 0 0 2.5 17Z"/><path d="M14.5 9c-.8.8-2 .8-2.8 0"/><path d="m17 12-2-2"/><path d="m14 14-2-2"/><path d="m11 11-2-2"/></svg> Categories
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chevron-right ml-auto" ><path d="m9 18 6-6-6-6"/></svg>
-          </a>
-          <a onClick={() => onNavigate('cart')} className="flex items-center text-fuchsia-100 text-lg font-semibold hover:text-fuchsia-400 transition-colors duration-200 w-full">
+          </button>
+          <button onClick={() => onNavigate('cart')} className="flex items-center text-fuchsia-100 text-lg font-semibold hover:text-fuchsia-400 transition-colors duration-200 w-full">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-shopping-cart mr-3" ><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg> Cart ({totalItems})
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucude-chevron-right ml-auto" ><path d="m9 18 6-6-6-6"/></svg>
-          </a>
+          </button>
         </div>
       </div>
     </header>
@@ -563,9 +563,9 @@ const App = () => {
     <footer className="p-8 border-t border-white/10 backdrop-blur-sm bg-white/5 text-fuchsia-200">
       <div className="container mx-auto text-center space-y-6">
         <div className="flex justify-center space-x-6">
-          <a href="#" className="hover:text-fuchsia-400 transition-colors duration-200"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-instagram" ><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.5" y1="6.5" y2="6.5"/></svg></a>
-          <a href="#" className="hover:text-fuchsia-400 transition-colors duration-200"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-twitter" ><path d="M22 4s-.7 2.1-2 3.4c-.6.8-1.5 1.5-2.4 1.7a2 2 0 0 1-2.9-.6c-1.2-1.2-2.3-2.3-3.6-2.9-2.2-.8-4.1-.3-5.3.8-1.1.9-1.5 2.1-1.2 3.6.4 1.7 2.2 3.2 4.1 4.2 1.9 1 3.8 1.5 5.7 1.2s3.6-.8 4.9-2.1c.9-.9 1.7-2.1 2.3-3.4.6-1.3.8-2.6.4-4-1.1-3.6-4.5-5.9-8.4-5.9-2.3 0-4.5.7-6.3 2.1-1.8 1.4-3.1 3.2-3.8 5.2-.7 2-.5 4.1.3 6.1s2 3.8 3.6 5.3c1.6 1.5 3.5 2.7 5.7 3.3 2.2.6 4.5.3 6.5-.9 2-.9 3.6-2.4 4.8-4.4a8 8 0 0 0 .9-3.7V9a1 1 0 0 0-1-1h-2a1 1 0 0 0-1 1v.7c-.1-.1-.3-.2-.5-.3a5 5 0 0 0-5.3-.8c-1.3.6-2.5 1.7-3.6 2.9-1.1 1.2-1.5 2.4-1.2 3.6s2.2 3.2 4.1 4.2c1.9 1 3.8 1.5 5.7 1.2s3.6-.8 4.9-2.1c.9-.9 1.7-2.1 2.3-3.4.6-1.3.8-2.6.4-4-1.1-3.6-4.5-5.9-8.4-5.9z"/></svg></a>
-          <a href="#" className="hover:text-fuchsia-400 transition-colors duration-200"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-facebook" ><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
+          <button className="hover:text-fuchsia-400 transition-colors duration-200"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-instagram" ><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.5" y1="6.5" y2="6.5"/></svg></button>
+          <button className="hover:text-fuchsia-400 transition-colors duration-200"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-twitter" ><path d="M22 4s-.7 2.1-2 3.4c-.6.8-1.5 1.5-2.4 1.7a2 2 0 0 1-2.9-.6c-1.2-1.2-2.3-2.3-3.6-2.9-2.2-.8-4.1-.3-5.3.8-1.1.9-1.5 2.1-1.2 3.6.4 1.7 2.2 3.2 4.1 4.2 1.9 1 3.8 1.5 5.7 1.2s3.6-.8 4.9-2.1c.9-.9 1.7-2.1 2.3-3.4.6-1.3.8-2.6.4-4-1.1-3.6-4.5-5.9-8.4-5.9-2.3 0-4.5.7-6.3 2.1-1.8 1.4-3.1 3.2-3.8 5.2-.7 2-.5 4.1.3 6.1s2 3.8 3.6 5.3c1.6 1.5 3.5 2.7 5.7 3.3 2.2.6 4.5.3 6.5-.9 2-.9 3.6-2.4 4.8-4.4a8 8 0 0 0 .9-3.7V9a1 1 0 0 0-1-1h-2a1 1 0 0 0-1 1v.7c-.1-.1-.3-.2-.5-.3a5 5 0 0 0-5.3-.8c-1.3.6-2.5 1.7-3.6 2.9-1.1 1.2-1.5 2.4-1.2 3.6s2.2 3.2 4.1 4.2c1.9 1 3.8 1.5 5.7 1.2s3.6-.8 4.9-2.1c.9-.9 1.7-2.1 2.3-3.4.6-1.3.8-2.6.4-4-1.1-3.6-4.5-5.9-8.4-5.9z"/></svg></button>
+          <button className="hover:text-fuchsia-400 transition-colors duration-200"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-facebook" ><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></button>
         </div>
         <div>
           <h3 className="text-lg font-bold mb-2 font-curly">Join Our Newsletter</h3>
