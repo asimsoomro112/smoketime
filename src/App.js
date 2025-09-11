@@ -240,12 +240,12 @@ const Navbar = ({ onCartClick, onWishlistClick, cartCount, wishlistCount, onSear
         <>
             <nav className="sticky top-0 z-50 px-4 py-3 bg-slate-900/80 backdrop-blur-lg border-b border-slate-800 shadow-purple-500/10 shadow-lg">
                 <div className="container mx-auto flex items-center justify-between">
-                    <a href="#" className="text-2xl font-orbitron font-bold text-white">
+                    <a href="#/" className="text-2xl font-orbitron font-bold text-white">
                         <GlitchText>SMOKE TIME ⚡</GlitchText>
                     </a>
                     <div className="hidden lg:flex items-center space-x-6 text-slate-300 font-semibold">
                         {navLinks.map(link => (
-                            <a key={link} href="#" className="hover:text-purple-400 transition-colors duration-300 relative group">
+                            <a key={link} href="#/" className="hover:text-purple-400 transition-colors duration-300 relative group">
                                 {link}
                                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-purple-400 transition-all duration-300 group-hover:w-full"></span>
                             </a>
@@ -290,7 +290,7 @@ const Navbar = ({ onCartClick, onWishlistClick, cartCount, wishlistCount, onSear
                 </div>
                 <div className="flex flex-col items-center justify-center h-full space-y-8">
                     {navLinks.map(link => (
-                         <a key={link} href="#" onClick={() => setIsMenuOpen(false)} className="text-3xl font-orbitron text-white hover:text-purple-400 transition-colors">
+                         <a key={link} href="#/" onClick={() => setIsMenuOpen(false)} className="text-3xl font-orbitron text-white hover:text-purple-400 transition-colors">
                             <GlitchText>{link}</GlitchText>
                         </a>
                     ))}
@@ -489,7 +489,6 @@ const TestimonialsSection = () => {
     const [currentIndex, setCurrentIndex] = useState(0);
 
     const next = () => setCurrentIndex((prev) => (prev + 1) % testimonials.length);
-    const prev = () => setCurrentIndex((prev) => (prev - 1 + testimonials.length) % testimonials.length);
 
     useEffect(() => {
         const timer = setInterval(next, 5000);
@@ -587,27 +586,27 @@ const Footer = () => (
                 <div>
                     <h4 className="font-bold text-white mb-4">Shop</h4>
                     <ul className="space-y-2 text-sm">
-                        <li><a href="#" className="hover:text-purple-400">New Arrivals</a></li>
-                        <li><a href="#" className="hover:text-purple-400">Best Sellers</a></li>
-                        <li><a href="#" className="hover:text-purple-400">All Products</a></li>
-                        <li><a href="#" className="hover:text-purple-400">Deals</a></li>
+                        <li><a href="#/" className="hover:text-purple-400">New Arrivals</a></li>
+                        <li><a href="#/" className="hover:text-purple-400">Best Sellers</a></li>
+                        <li><a href="#/" className="hover:text-purple-400">All Products</a></li>
+                        <li><a href="#/" className="hover:text-purple-400">Deals</a></li>
                     </ul>
                 </div>
                  <div>
                     <h4 className="font-bold text-white mb-4">Support</h4>
                     <ul className="space-y-2 text-sm">
-                        <li><a href="#" className="hover:text-purple-400">Contact Us</a></li>
-                        <li><a href="#" className="hover:text-purple-400">FAQs</a></li>
-                        <li><a href="#" className="hover:text-purple-400">Shipping Policy</a></li>
-                        <li><a href="#" className="hover:text-purple-400">Returns</a></li>
+                        <li><a href="#/" className="hover:text-purple-400">Contact Us</a></li>
+                        <li><a href="#/" className="hover:text-purple-400">FAQs</a></li>
+                        <li><a href="#/" className="hover:text-purple-400">Shipping Policy</a></li>
+                        <li><a href="#/" className="hover:text-purple-400">Returns</a></li>
                     </ul>
                 </div>
                  <div>
                     <h4 className="font-bold text-white mb-4">Connect</h4>
                      <div className="flex space-x-4">
-                        <a href="#" className="hover:text-purple-400">IG</a>
-                        <a href="#" className="hover:text-purple-400">WA</a>
-                        <a href="#" className="hover:text-purple-400">TT</a>
+                        <a href="#/" className="hover:text-purple-400">IG</a>
+                        <a href="#/" className="hover:text-purple-400">WA</a>
+                        <a href="#/" className="hover:text-purple-400">TT</a>
                     </div>
                 </div>
             </div>
@@ -1044,4 +1043,5 @@ export default function App() {
         </WishlistProvider>
     );
 }
+
 
