@@ -1,630 +1,1047 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, createContext, useContext, useRef } from 'react';
 
-// Product data with pre-filled image URLs
-const productsData = [
-  { id: 1, category: 'Pipes', name: 'Nebula Glass Pipe', price: 49.99, description: 'A beautifully handcrafted glass pipe that glows with a faint purple hue. Inspired by cosmic dust clouds.', image: 'https://placehold.co/600x400/312e81/e9d5ff?text=Glass+Pipe' },
-  { id: 2, category: 'Bongs', name: 'Aurora Bong', price: 129.99, description: 'Experience the northern lights with this stunning, pearlescent bong. Features a unique water filtration system for a smooth draw.', image: 'https://placehold.co/600x400/312e81/e9d5ff?text=Aurora+Bong' },
-  { id: 3, category: 'Accessories', name: 'Amethyst Grinder', price: 29.99, description: 'A sleek, durable grinder made from polished amethyst-colored metal. Provides a perfect, consistent grind every time.', image: 'https://placehold.co/600x400/312e81/e9d5ff?text=Amethyst+Grinder' },
-  { id: 4, category: 'Bongs', name: 'Crystalline Dab Rig', price: 179.99, description: 'This dab rig is a true work of art. The glass is cut to refract light, creating a sparkling crystal effect.', image: 'https://placehold.co/600x400/312e81/e9d5ff?text=Dab+Rig' },
-  { id: 5, category: 'Accessories', name: 'Void Ashtray', price: 24.99, description: 'An elegant, matte black ashtray with a subtle, shimmering purple rim. A functional piece of decor for any space.', image: 'https://placehold.co/600x400/312e81/e9d5ff?text=Void+Ashtray' },
-  { id: 6, category: 'Accessories', name: 'Galaxy Rolling Tray', price: 34.99, description: 'A metallic rolling tray with a detailed, holographic galaxy print. Keep your accessories organized in style.', image: 'https://placehold.co/600x400/312e81/e9d5ff?text=Rolling+Tray' },
-  { id: 7, category: 'Pipes', name: 'Cosmic Traveler Pipe', price: 59.99, description: 'Compact and discreet, this pipe features a swirling galaxy pattern within the glass, perfect for on-the-go.', image: 'https://placehold.co/600x400/312e81/e9d5ff?text=Traveler+Pipe' },
-  { id: 8, category: 'Bongs', name: 'Stardust Waterfall Bong', price: 149.99, description: 'A tall bong with multiple percolators, creating a "waterfall" effect filled with shimmering gold flecks.', image: 'https://placehold.co/600x400/312e81/e9d5ff?text=Waterfall+Bong' },
-  { id: 9, category: 'Vapes', name: 'Lunar Pod System', price: 89.99, description: 'A sleek, refillable pod system vape with a long-lasting battery and quick heating technology.', image: 'https://placehold.co/600x400/312e81/e9d5ff?text=Pod+Vape' },
-  { id: 10, category: 'Vapes', name: 'Solaris Desktop Vaporizer', price: 249.99, description: 'A high-end desktop vaporizer with precise temperature control and a massive ceramic heating chamber.', image: 'https://placehold.co/600x400/312e81/e9d5ff?text=Desktop+Vaporizer' },
-  { id: 11, category: 'Pipes', name: 'Comet Chillum', price: 29.99, description: 'A small, powerful chillum with a thick glass body and a carb hole for full control.', image: 'https://placehold.co/600x400/312e81/e9d5ff?text=Chillum' },
-  { id: 12, category: 'Accessories', name: 'Cosmic Cleaner', price: 14.99, description: 'A premium cleaning solution designed to easily remove residue from all your glass pieces.', image: 'https://placehold.co/600x400/312e81/e9d5ff?text=Cleaner' },
-];
-
-const categoriesData = [
-  { name: 'Pipes', icon: 'pipe' },
-  { name: 'Bongs', icon: 'bong' },
-  { name: 'Vapes', icon: 'vape' },
-  { name: 'Accessories', icon: 'accessories' },
-];
-
-// Helper component for the glassy effect
-const GlassyCard = ({ children, className }) => (
-  <div className={`p-4 rounded-3xl backdrop-blur-xl border border-white/10 bg-white/5 shadow-[0_4px_30px_rgba(0,0,0,0.1)] ${className}`}>
-    {children}
-  </div>
-);
-
-// Reusable Product Card Component
-const ProductCard = ({ product, onSelectProduct, onAddToCart }) => (
-  <GlassyCard className="flex flex-col items-center justify-between p-4 group">
-    <div onClick={() => onSelectProduct(product.id)} className="w-full cursor-pointer hover:scale-105 transition-transform duration-300">
-      <img
-        src={product.image}
-        alt={product.name}
-        className="w-full h-auto rounded-xl object-cover mb-4 shadow-lg group-hover:shadow-2xl transition-shadow duration-300"
-        onError={(e) => { e.target.src = 'https://placehold.co/600x400/312e81/c7d2fe?text=Image+Error'; }}
-      />
-      <h3 className="text-lg font-semibold text-fuchsia-200 truncate">{product.name}</h3>
-      <p className="text-xl font-bold text-fuchsia-400 mt-2">${product.price.toFixed(2)}</p>
-    </div>
-    <button
-      onClick={() => onAddToCart(product)}
-      className="mt-4 w-full py-2 px-4 rounded-xl font-semibold text-white bg-fuchsia-600 hover:bg-fuchsia-500 transition-colors duration-200"
-    >
-      Add to Cart
-    </button>
-  </GlassyCard>
-);
-
-// Function to return an SVG icon based on name
-const getCategoryIcon = (iconName) => {
-  switch (iconName) {
-    case 'pipe':
-      return (
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" fill="currentColor">
-          <path d="M569.5 13.9c-4.9-10.8-15-17.7-26.6-18.7c-5.9-.5-11.9.4-17.4 2.8l-18.4 8.1c-14.9 6.6-26.8 17.1-34.5 30.6c-7.7 13.5-11.7 28.9-11.7 44.8v101.4l-118.7 52.3c-23.7 10.4-44.5 26.2-61.6 46.5c-17.1 20.3-30.5 44.2-40.2 70.4l-4.7 12.5c-1.3 3.5-2.8 7-4.5 10.4c-8 15.6-18 30.2-29.8 43.6s-26.3 25-41.6 33c-30.2 16.1-64.6 24.3-99.7 24.3C38.6 512 0 473.4 0 425.9c0-40 27.9-74.8 65.5-84.6l-5.7-1.4c-12.7-3.1-23.8-10.9-31.5-21.7s-11.7-24-11-37.5c.7-13.5 6.2-26.2 15.3-36.8s21.7-19.1 35.8-23.7c18.5-5.9 39.5-2.2 56 10.3c16.5 12.5 28.5 31.7 34.2 52.9c.7 2.7 1.4 5.3 2.1 7.9c1.9 6.8 4.2 13.5 6.7 20.2c.4 1.1.9 2.1 1.4 3.1c9.2 17.5 21.6 33.7 36.8 47.9s32.7 26.3 52.2 34.6c2.9 1.2 5.8 2.3 8.8 3.2c-5.8-22.1-13.8-43.9-23.8-64.8c-10.1-20.9-22-41.1-35.8-60.2l-14.7-20.7c-17.6-24.8-37.4-48.1-59.5-69.8c-22-21.7-46.5-41.2-72.9-57.9L161.4 89.2c-15.1-9.4-23.1-26.9-20.5-44.3c2.6-17.4 15.1-30.7 32-35.9c16.9-5.1 33.7-2.6 47.6 7.4L372 130.6c13.7 8.5 22.1 23.3 22.1 39.3v101.4c.1 12.8 3.5 25.4 10.1 36.5s15.9 20.7 26.6 28.8l105.1 79c8.2 6.1 18.2 9.5 28.5 9.5c.9 0 1.8 0 2.7-.1c18.5-1 34.1-13.3 40.5-31.4c2.8-8.1 3.5-16.7 1.7-25.2c-.3-1.6-1.5-2.8-3-3.7c-7.9-4.7-12.8-13.4-12.8-23.1c0-15.2 12.2-27.7 27.4-28.5c15.2-.8 28.6 11.1 29.4 26.3c.6 11.2-5 21.6-14.7 27.6l-3.3 2c-3.7 2.2-6 6.3-5.5 10.6c.6 4.3 3 8 6.7 10.2c27.5 16.5 60.1 24.3 93 23.4c21.8-.6 42.8-7.9 61.1-21.7s32.2-33.1 40-54.7c15.8-43.8 2.8-93.5-30-125.7z"/>
-        </svg>
-      );
-    case 'bong':
-      return (
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" fill="currentColor">
-          <path d="M112 0c-35.3 0-64 28.7-64 64V256c0 53 14.1 103.5 40 148.6c-4.1-1.3-8.2-2.6-12.3-4c-28.3-9.5-56.7-14.2-84.6-14.2C13.1 386.4 0 399.5 0 415.7c0 16.2 13.1 29.3 29.3 29.3c33.3 0 65.6 10.3 92.4 29.2c16.3 11.5 35.3 17.9 55.3 17.9c13.7 0 27.1-3 39.8-8.8l4.4-2.1c8.9-4 17.5-8.8 25.8-14.4c1.9-1.3 3.8-2.6 5.6-4c6.2-4.5 12.1-9.4 17.8-14.6c1.1-1 2.2-2.1 3.2-3.2c5.6-5.4 10.9-11 15.9-16.9c-2.4 1.1-4.7 2.2-7 3.3c-28.3 13.4-56.9 22.8-85.2 27.8c-1.2 .2-2.5 .3-3.7 .5c-11.8 1.9-23.7 2.8-35.6 2.8c-1.3 0-2.6 0-3.9-.1c-1.7-.1-3.4-.2-5-.5c-15.6-2.5-30.8-7.8-45.1-15.8l-1.6-.9c-14.4-8-27.7-18.1-39.6-29.8c-11.9-11.7-22.3-25.2-30.9-40.4L13.8 274.9c-11.5-22.1-17.3-46.6-17.3-71.9c0-50.5 31-93.9 76.5-117.8c-15.3-21.4-24.8-47.5-24.8-75.1C48.2 28.7 76.8 0 112 0h243.6c-17.5-6.7-36.4-10.2-56.1-10.2H112zM272 64h48c8.8 0 16-7.2 16-16V32c0-8.8-7.2-16-16-16H272c-8.8 0-16 7.2-16 16v16c0 8.8 7.2 16 16 16z"/>
-        </svg>
-      );
-    case 'vape':
-      return (
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor">
-          <path d="M432 0c-44.2 0-80 35.8-80 80V96h16c26.5 0 48 21.5 48 48s-21.5 48-48 48H352V304c0 30.2-20.3 55.7-49.3 62.4c-4.4 1-8.7 2.4-12.7 4c-11.8 4.6-23.4 10.5-34.4 17.5c-6.8 4.4-13.3 9.3-19.4 14.6c-1.8 1.6-3.6 3.2-5.3 4.9c-4.7 4.7-9.1 9.7-13.1 15c-1.7 2.3-3.3 4.6-4.9 6.9c-1.8 2.7-3.6 5.3-5.1 8.2c-1.8 3.5-3.3 7-4.5 10.8c-1.3 3.9-2.3 7.8-3.1 11.8c-3.4 18.5-12.7 36.6-27.1 51.1c-14.4 14.4-32.5 23.8-51.1 27.1c-3.9 .7-7.9 1.8-11.8 3.1c-2.9 1.2-5.6 2.4-8.2 4.2c-2.3 1.6-4.6 3.3-4.9 5.3c-4.6 6-9.5 12.5-14.6 19.4c-7.1 11.2-13 22.8-17.5 34.4c-1.6 4-3 8.3-4.1 12.7c-6.8 29.1-32.3 49.3-62.4 49.3H0V432c0-8.8 7.2-16 16-16H32c8.8 0 16 7.2 16 16v48h48c8.8 0 16 7.2 16 16s-7.2 16-16 16H48 32c-17.7 0-32-14.3-32-32V432 0z"/>
-        </svg>
-      );
-    case 'accessories':
-      return (
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" fill="currentColor">
-          <path d="M495 50.9C499.7 45.4 507.9 45.4 512.6 50.9l57.4 64.4c5.1 5.6 5.8 14.1 1.6 20.5l-63.5 96.6c-3.2 4.9-8.4 8.3-14.1 9.5s-11.7-1.4-15.6-5.2L424.4 179c-3.9-3.9-5.9-9.2-5.9-14.6c0-1.8 .3-3.7 .8-5.5l14.8-51.8c.8-2.9 2-5.6 3.6-8.1zM511.4 285.8c-11.2 11.3-24.3 20.3-38.9 26.6c-1.2 0-2.4 .4-3.6 .4c-1.2 0-2.4 0-3.6-.2c-39.7-7-70.3-39.9-76.3-80.1l-1.3-8.8c-.8-5.7-3.8-11-8.2-14.9L304.5 90.7C300 86.2 293.9 84 287.7 84c-3.1 0-6.2 .9-9.1 2.7l-20.9 13.4L112.1 63.8c-11.8-7.6-26.4-8.8-39.4-3.4c-13 5.4-23.2 15.6-28.6 28.6c-5.4 13-4.2 27.6 3.4 39.4L184.2 256H112c-8.8 0-16 7.2-16 16v96c0 8.8 7.2 16 16 16H256c8.8 0 16-7.2 16-16V272c0-8.8-7.2-16-16-16h-46.7c-6.8-9.4-11.3-19.9-13.6-31.1c-6.7-32.9 14.8-66.4 46.1-73.4l117.8-26.2c.4-.1 .8-.1 1.2-.2c35.4-8.7 73.1 3.5 96.9 29.5c.3 .3 .7 .6 1 .9c.6 .7 1.3 1.4 1.9 2.1c25.4 26.1 34.6 63.8 25.9 99.2c-1.1 4.5-2.7 8.9-4.8 13.2l-64 128c-3.2 6.3-10.4 10.1-17.7 9.5s-13.8-5.5-16.7-11.6l-50.7-105.1c-1.5-3.2-3.8-5.9-6.7-8.1l-61.9-44.2c-12.7-9.1-26.6-13.7-41-13.7H112c-44.2 0-80 35.8-80 80V416c0 17.7 14.3 32 32 32H384c17.7 0 32-14.3 32-32V256c0-21.7-5.5-42.3-15.6-60.8l56.8-40.6c11.3-8.1 25.9-5.1 34.1 6.2c8.1 11.3 5.1 25.9-6.2 34.1L458.7 224c-11 7.9-20.4 17.7-27.9 28.7L320 416c-3.1 4.8-5.2 10.1-6.1 15.5c-4.6 27.4 13.5 54.4 40.9 59c27.4 4.6 54.4-13.5 59-40.9c.9-5.6 2.5-11 4.8-16.2L498.4 290.5c1.1-2.4 2.1-4.8 3.2-7.2c.5-1.1 .9-2.2 1.4-3.3c3.4-7.4 5.2-15.1 5.2-23c0-11.7-4.4-22.6-12.3-31.2z"/>
-        </svg>
-      );
-    default:
-      return null;
+// --- MOCK DATA ---
+// In a real app, this would come from an API
+const mockProducts = [
+  {
+    id: 1,
+    name: 'Nebula Beaker Bong',
+    category: 'Bongs',
+    price: 8500,
+    image: 'https://placehold.co/400x400/1a1a1a/a855f7?text=Nebula+Bong',
+    stockStatus: 'In Stock',
+    rating: 4.8,
+    description: 'A 12-inch beaker bong made from high-quality borosilicate glass, featuring a stunning nebula design. Perfect for smooth, filtered hits.',
+    options: { Color: ['Cosmic Purple', 'Galaxy Green'], Size: ['12 inch'] }
+  },
+  {
+    id: 2,
+    name: 'Quantum Grinder',
+    category: 'Grinders',
+    price: 4200,
+    image: 'https://placehold.co/400x400/1a1a1a/22c55e?text=Quantum+Grinder',
+    stockStatus: 'In Stock',
+    bestseller: true,
+    rating: 4.9,
+    description: 'Precision-engineered 4-piece grinder made from aerospace-grade aluminum. Diamond-cut teeth for a fluffy grind every time.',
+    options: { Color: ['Matte Black', 'Chrome Silver'] }
+  },
+  {
+    id: 3,
+    name: 'Oracle Organic Papers',
+    category: 'Rolling Papers',
+    price: 550,
+    image: 'https://placehold.co/400x400/1a1a1a/f472b6?text=Oracle+Papers',
+    stockStatus: 'Limited',
+    rating: 4.5,
+    description: 'King-size slim rolling papers made from 100% unbleached, organic hemp. Slow-burning for a premium experience.',
+    options: { Pack: ['Single', 'Box of 50'] }
+  },
+  {
+    id: 4,
+    name: 'Aether Vape Pen',
+    category: 'Vapes',
+    price: 12500,
+    image: 'https://placehold.co/400x400/1a1a1a/38bdf8?text=Aether+Vape',
+    stockStatus: 'Sold Out',
+    rating: 4.7,
+    description: 'A sleek and powerful vape pen with variable voltage settings and a ceramic coil for pure flavor. Long-lasting battery.',
+    options: { Color: ['Onyx Black', 'Pearl White'] }
+  },
+  {
+    id: 5,
+    name: 'Cyberpunk Stash Jar',
+    category: 'Lifestyle',
+    price: 3800,
+    image: 'https://placehold.co/400x400/1a1a1a/a855f7?text=Stash+Jar',
+    stockStatus: 'In Stock',
+    rating: 4.6,
+    description: 'An airtight, UV-protected glass jar with a futuristic cyberpunk design. Keeps your stash fresh and discreet.',
+    options: { Size: ['100ml', '250ml'] }
+  },
+  {
+    id: 6,
+    name: 'Vortex Gravity Bong',
+    category: 'Bongs',
+    price: 25000,
+    image: 'https://placehold.co/400x400/1a1a1a/22c55e?text=Gravity+Bong',
+    stockStatus: 'In Stock',
+    bestseller: true,
+    rating: 5.0,
+    description: 'Experience the future of smoking with this 360° rotating glass gravity bong. Delivers kinetic motion activation and contactless consumption.',
+    options: { Color: ['Black/Gold', 'White/Chrome'] }
+  },
+  {
+    id: 7,
+    name: 'Chrono-Grind Electric Grinder',
+    category: 'Grinders',
+    price: 7800,
+    image: 'https://placehold.co/400x400/1a1a1a/f472b6?text=Electric+Grinder',
+    stockStatus: 'Limited',
+    rating: 4.8,
+    description: 'USB-C rechargeable electric grinder. Effortlessly grinds your herbs to the perfect consistency in seconds.',
+    options: { Color: ['Gunmetal Grey', 'Rose Gold'] }
+  },
+  {
+    id: 8,
+    name: 'Zenith Pre-Rolled Cones',
+    category: 'Rolling Papers',
+    price: 1200,
+    image: 'https://placehold.co/400x400/1a1a1a/38bdf8?text=Zenith+Cones',
+    stockStatus: 'In Stock',
+    rating: 4.4,
+    description: 'Pack of 50 king-size pre-rolled cones. Made from ultra-thin rice paper for a clean, tasteless smoke.',
+    options: { Size: ['King Size', '98 Special'] }
+  },
+  {
+    id: 9,
+    name: 'Pulsar Dry Herb Vaporizer',
+    category: 'Vapes',
+    price: 18000,
+    image: 'https://placehold.co/400x400/1a1a1a/a855f7?text=Pulsar+Vape',
+    stockStatus: 'In Stock',
+    rating: 4.9,
+    description: 'A premium convection vaporizer with precise temperature control, a ceramic chamber, and a glass mouthpiece for unparalleled flavor.',
+    options: { Color: ['Carbon Fiber', 'Anodized Blue'] }
+  },
+  {
+    id: 10,
+    name: 'Glitch Rolling Tray',
+    category: 'Lifestyle',
+    price: 2500,
+    image: 'https://placehold.co/400x400/1a1a1a/22c55e?text=Rolling+Tray',
+    stockStatus: 'In Stock',
+    bestseller: true,
+    rating: 4.7,
+    description: 'A durable metal rolling tray with a unique, animated glitch art design. Raised edges keep your herbs contained.',
+    options: { Size: ['Small', 'Medium'] }
+  },
+  {
+    id: 11,
+    name: 'Matrix Silicone Bong',
+    category: 'Bongs',
+    price: 6500,
+    image: 'https://placehold.co/400x400/1a1a1a/f472b6?text=Matrix+Bong',
+    stockStatus: 'In Stock',
+    rating: 4.5,
+    description: 'An indestructible, food-grade silicone bong with a suction cup base. Perfect for clumsy smokers and travel. Easy to clean.',
+    options: { Color: ['Neon Green', 'Hot Pink', 'Black'] }
+  },
+  {
+    id: 12,
+    name: 'Stealth-Tech Smell Proof Bag',
+    category: 'Lifestyle',
+    price: 5500,
+    image: 'https://placehold.co/400x400/1a1a1a/38bdf8?text=Smell+Proof+Bag',
+    stockStatus: 'In Stock',
+    rating: 4.9,
+    description: 'Activated carbon lining and a combo lock make this the ultimate smell-proof bag for secure and discreet storage.',
+    options: { Size: ['Medium', 'Large'] }
   }
+];
+
+const categories = [
+    { name: 'Bongs', icon: '🔥' },
+    { name: 'Grinders', icon: '⚙️' },
+    { name: 'Rolling Papers', icon: '📜' },
+    { name: 'Vapes', icon: '💨' },
+    { name: 'Lifestyle', icon: '✨' },
+];
+
+const testimonials = [
+  { name: 'Hassan Ali', city: 'Karachi', review: 'Finally, a store in Pakistan that gets it! The quality is insane and the designs are next-level. My Quantum Grinder is a beast.', avatar: '👨‍💻' },
+  { name: 'Fatima Khan', city: 'Lahore', review: 'Absolutely in love with the vibe of this site. The checkout was smooth, and my order arrived in 2 days. The Nebula Bong is a work of art!', avatar: '👩‍🎨' },
+  { name: 'Zain Ahmed', city: 'Islamabad', review: '10/10 customer service. Had a question and they replied on WhatsApp instantly. This is my go-to store from now on.', avatar: '🧑‍🚀' },
+];
+
+// --- ICONS ---
+// Using simple SVG strings to avoid external dependencies
+const ShoppingCartIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>;
+const HeartIcon = ({ filled }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>;
+const SearchIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>;
+const XIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>;
+const SunIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>;
+const MoonIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>;
+const MenuIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>;
+const PlusIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>;
+const MinusIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>;
+const Trash2Icon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>;
+const Share2Icon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>;
+const ChevronLeft = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>;
+const ChevronRight = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>;
+
+
+// --- WISHLIST CONTEXT ---
+const WishlistContext = createContext();
+
+const WishlistProvider = ({ children }) => {
+    const [wishlist, setWishlist] = useState([]);
+
+    useEffect(() => {
+        const storedWishlist = localStorage.getItem('smokeTimeWishlist');
+        if (storedWishlist) {
+            setWishlist(JSON.parse(storedWishlist));
+        }
+    }, []);
+
+    const toggleWishlist = (productId) => {
+        setWishlist(prev => {
+            const newWishlist = prev.includes(productId)
+                ? prev.filter(id => id !== productId)
+                : [...prev, productId];
+            localStorage.setItem('smokeTimeWishlist', JSON.stringify(newWishlist));
+            return newWishlist;
+        });
+    };
+
+    const isInWishlist = (productId) => wishlist.includes(productId);
+
+    return (
+        <WishlistContext.Provider value={{ wishlist, toggleWishlist, isInWishlist }}>
+            {children}
+        </WishlistContext.Provider>
+    );
 };
 
-// Reusable Category Card Component
-const CategoryCard = ({ category, onNavigate }) => (
-  <div
-    onClick={() => onNavigate('shop', category.name)}
-    className="relative overflow-hidden rounded-3xl aspect-square cursor-pointer transition-transform duration-300 hover:scale-105 bg-gray-800 flex flex-col items-center justify-center p-4"
-  >
-    <div className="text-4xl sm:text-5xl text-fuchsia-400 mb-2">
-      {getCategoryIcon(category.icon)}
-    </div>
-    <h3 className="text-xl sm:text-2xl font-bold text-white font-curly">{category.name}</h3>
-  </div>
-);
+const useWishlist = () => useContext(WishlistContext);
 
-// Confirmation Modal Component
-const ConfirmationModal = ({ title, message, onConfirm, onCancel, confirmText = 'Confirm', cancelText = 'Cancel' }) => (
-  <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-    <div className="bg-violet-950 p-8 rounded-3xl shadow-2xl border border-fuchsia-400/20 max-w-sm w-full text-center">
-      <h3 className="text-2xl font-bold text-fuchsia-200 mb-4 font-curly">{title}</h3>
-      <p className="text-fuchsia-100 mb-6">{message}</p>
-      <div className="flex space-x-4 justify-center">
-        <button
-          onClick={onCancel}
-          className="px-6 py-2 rounded-xl text-fuchsia-200 border border-fuchsia-400/50 hover:bg-white/10 transition-colors duration-200"
-        >
-          {cancelText}
-        </button>
-        <button
-          onClick={onConfirm}
-          className="px-6 py-2 rounded-xl text-white font-semibold bg-fuchsia-600 hover:bg-fuchsia-500 transition-colors duration-200"
-        >
-          {confirmText}
-        </button>
-      </div>
-    </div>
-  </div>
-);
-
-// App Component (Main)
-const App = () => {
-  const [page, setPage] = useState('home');
-  const [selectedProductId, setSelectedProductId] = useState(null);
-  const [cart, setCart] = useState([]);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [messageModal, setMessageModal] = useState({ visible: false, title: '', message: '' });
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('');
-  const [products] = useState(productsData);
-  const [categories] = useState(categoriesData);
-
-  // Load cart from localStorage on initial render
-  useEffect(() => {
-    try {
-      const storedCart = JSON.parse(localStorage.getItem('cart')) || [];
-      setCart(storedCart);
-    } catch (error) {
-      console.error("Failed to parse cart data from localStorage:", error);
-      setCart([]);
-    }
-  }, []);
-
-  // Save cart to localStorage whenever it changes
-  useEffect(() => {
-    try {
-      localStorage.setItem('cart', JSON.stringify(cart));
-    } catch (error) {
-      console.error("Failed to save cart data to localStorage:", error);
-    }
-  }, [cart]);
-
-  const onSelectProduct = (id) => {
-    setSelectedProductId(id);
-    setPage('details');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const onAddToCart = (product) => {
-    setMessageModal({ visible: true, title: 'Success!', message: `${product.name} added to cart!` });
-    setCart(prevCart => {
-      const existingItem = prevCart.find(item => item.id === product.id);
-      if (existingItem) {
-        return prevCart.map(item =>
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
-        );
-      } else {
-        return [...prevCart, { ...product, quantity: 1 }];
-      }
-    });
-  };
-
-  const onRemoveFromCart = (productId) => {
-    setCart(prevCart => prevCart.filter(item => item.id !== productId));
-  };
-
-  const updateQuantity = (productId, quantity) => {
-    if (quantity < 1) {
-      onRemoveFromCart(productId);
-      return;
-    }
-    setCart(prevCart =>
-      prevCart.map(item =>
-        item.id === productId ? { ...item, quantity: quantity } : item
-      )
+// --- HELPER COMPONENTS ---
+const GlitchText = ({ children, className }) => {
+    return (
+        <span className={`glitch ${className}`} data-text={children}>
+            {children}
+        </span>
     );
-  };
+};
 
-  const onClearCart = () => {
-    setCart([]);
-    setMessageModal({ visible: true, title: 'Order Placed!', message: 'Thank you for your purchase. Your order has been placed successfully!' });
-    setShowConfirmModal(false);
-    onNavigate('home');
-  };
-
-  const onNavigate = (targetPage, category = '') => {
-    setPage(targetPage);
-    setCategoryFilter(category);
-    setIsMenuOpen(false);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  // Main Page Router
-  const renderPage = () => {
-    switch (page) {
-      case 'home':
-        return <HomePage />;
-      case 'shop':
-        return <ProductListingPage searchTerm={searchTerm} categoryFilter={categoryFilter} />;
-      case 'details':
-        const product = products.find(p => p.id === selectedProductId);
-        return <ProductDetailsPage product={product} />;
-      case 'cart':
-        return <CartPage />;
-      case 'checkout':
-        return <CheckoutPage />;
-      case 'categories':
-        return <CategoriesPage />;
-      default:
-        return <HomePage />;
-    }
-  };
-
-  const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-
-  // Home Page
-  const HomePage = () => (
-    <>
-      <section className="relative h-[60vh] sm:h-[70vh] flex items-center justify-center p-4 text-center">
-        <div className="absolute inset-0 z-0 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-violet-900 to-fuchsia-900 opacity-90 blur-3xl rounded-full scale-150 animate-pulse-slow"></div>
-          <div className="absolute inset-0 bg-gradient-to-tr from-purple-800 to-indigo-800 opacity-70 blur-3xl rounded-full scale-125 animate-pulse-fast"></div>
-        </div>
-        <div className="relative z-10">
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-4 drop-shadow-2xl font-curly">
-            Ignite Your Senses
-          </h1>
-          <p className="text-lg sm:text-xl text-fuchsia-200 drop-shadow-lg max-w-lg mx-auto mb-6">
-            Explore our curated collection of artisanal glass and premium accessories.
-          </p>
-          <button
-            onClick={() => onNavigate('shop')}
-            className="py-3 px-8 rounded-full text-lg font-semibold bg-fuchsia-500 text-white transition-all duration-300 hover:scale-105 hover:shadow-lg"
-          >
-            Shop Now
-          </button>
-        </div>
-      </section>
-
-      <section className="container mx-auto px-4 py-8">
-        <h2 className="text-2xl sm:text-3xl font-bold text-fuchsia-200 mb-6 text-center font-curly">Featured Products</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {products.slice(0, 3).map(product => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              onSelectProduct={onSelectProduct}
-              onAddToCart={onAddToCart}
-            />
-          ))}
-        </div>
-      </section>
-
-      <section className="container mx-auto px-4 py-8">
-        <h2 className="text-2xl sm:text-3xl font-bold text-fuchsia-200 mb-6 text-center font-curly">Shop by Category</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {categories.map((category, index) => (
-            <CategoryCard
-              key={index}
-              category={category}
-              onNavigate={onNavigate}
-            />
-          ))}
-        </div>
-      </section>
-
-      <section className="container mx-auto px-4 py-8">
-        <div className="p-8 rounded-3xl text-center bg-gradient-to-r from-purple-800 to-fuchsia-600 shadow-xl">
-          <h2 className="text-3xl font-bold text-white mb-2 font-curly">20% Off Your First Order</h2>
-          <p className="text-fuchsia-200 mb-6">Sign up for our newsletter to receive exclusive deals and updates.</p>
-          <button
-            onClick={() => onNavigate('shop')}
-            className="py-3 px-8 rounded-full font-semibold bg-white text-fuchsia-700 transition-all duration-300 hover:scale-105"
-          >
-            Get the Deal
-          </button>
-        </div>
-      </section>
-    </>
-  );
-
-  // Product Listing Page
-  const ProductListingPage = ({ searchTerm, categoryFilter }) => {
-    const filteredProducts = products.filter(product =>
-      (searchTerm ? product.name.toLowerCase().includes(searchTerm.toLowerCase()) : true) &&
-      (categoryFilter ? product.category === categoryFilter : true)
-    );
+const AnimatedButton = ({ children, onClick, className = '', secondary = false }) => {
+    const baseClasses = "relative inline-flex items-center justify-center px-6 py-3 overflow-hidden font-bold transition-all duration-300 ease-out rounded-lg shadow-lg group";
+    const primaryClasses = "bg-gradient-to-r from-purple-600 to-pink-600 text-white";
+    const secondaryClasses = "bg-transparent border-2 border-purple-500 text-purple-400 hover:text-white";
 
     return (
-      <div className="container mx-auto px-4 py-8 min-h-screen">
-        <h2 className="text-2xl sm:text-3xl font-bold text-fuchsia-200 mb-6 text-center font-curly">
-          {categoryFilter ? categoryFilter : 'Our Collection'}
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredProducts.length > 0 ? (
-            filteredProducts.map(product => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onSelectProduct={onSelectProduct}
-                onAddToCart={onAddToCart}
-              />
-            ))
-          ) : (
-            <div className="col-span-full text-center text-fuchsia-200 text-lg">No products found.</div>
-          )}
-        </div>
-      </div>
+        <button onClick={onClick} className={`${baseClasses} ${secondary ? secondaryClasses : primaryClasses} ${className}`}>
+            <span className="absolute inset-0 w-full h-full transition-all duration-300 ease-out bg-gradient-to-r from-green-400 via-purple-500 to-pink-500 group-hover:from-pink-500 group-hover:via-purple-500 group-hover:to-green-400"></span>
+            <span className="absolute inset-0 w-full h-full transition-all duration-300 ease-out opacity-0 group-hover:opacity-100 bg-gradient-to-r from-purple-600 to-pink-600"></span>
+            <span className="absolute w-full h-full transition-all duration-300 ease-out transform scale-x-0 -translate-x-1/2 bg-white opacity-20 group-hover:scale-x-100 group-hover:translate-x-0"></span>
+            <span className="relative">{children}</span>
+        </button>
     );
-  };
+};
 
-  // Categories Page
-  const CategoriesPage = () => (
-    <div className="container mx-auto px-4 py-8 min-h-screen">
-      <h2 className="text-2xl sm:text-3xl font-bold text-fuchsia-200 mb-6 text-center font-curly">All Categories</h2>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
-        {categories.map((category, index) => (
-          <CategoryCard
-            key={index}
-            category={category}
-            onNavigate={onNavigate}
-          />
-        ))}
-      </div>
-    </div>
-  );
+// --- CORE COMPONENTS ---
 
-  // Product Details Page
-  const ProductDetailsPage = ({ product }) => {
-    // Note: The review section has been removed as it requires a database.
+const Navbar = ({ onCartClick, onWishlistClick, cartCount, wishlistCount, onSearch, theme, toggleTheme }) => {
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    
+    const navLinks = ['Home', 'Shop', 'Deals', 'About'];
+
     return (
-      <div className="container mx-auto px-4 py-8 min-h-screen">
-        {product ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
-            <div className="rounded-3xl overflow-hidden shadow-lg border border-white/10 bg-white/5 p-4">
-              <img
-                src={product.image}
-                alt={product.name}
-                className="w-full h-auto rounded-2xl object-cover"
-                onError={(e) => { e.target.src = 'https://placehold.co/600x400/312e81/c7d2fe?text=Image+Error'; }}
-              />
+        <>
+            <nav className="sticky top-0 z-50 px-4 py-3 bg-slate-900/80 backdrop-blur-lg border-b border-slate-800 shadow-purple-500/10 shadow-lg">
+                <div className="container mx-auto flex items-center justify-between">
+                    <a href="#" className="text-2xl font-orbitron font-bold text-white">
+                        <GlitchText>SMOKE TIME ⚡</GlitchText>
+                    </a>
+                    <div className="hidden lg:flex items-center space-x-6 text-slate-300 font-semibold">
+                        {navLinks.map(link => (
+                            <a key={link} href="#" className="hover:text-purple-400 transition-colors duration-300 relative group">
+                                {link}
+                                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-purple-400 transition-all duration-300 group-hover:w-full"></span>
+                            </a>
+                        ))}
+                    </div>
+                    <div className="flex items-center space-x-4">
+                        <div className="hidden md:block relative">
+                            <input
+                                type="text"
+                                placeholder="Search gear..."
+                                onChange={(e) => onSearch(e.target.value)}
+                                className="bg-slate-800 border border-slate-700 text-white text-sm rounded-full w-40 md:w-56 pl-10 pr-4 py-2 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"
+                            />
+                            <div className="absolute top-1/2 left-3 -translate-y-1/2 text-slate-500">
+                                <SearchIcon />
+                            </div>
+                        </div>
+                        <button onClick={toggleTheme} className="text-slate-400 hover:text-purple-400 transition-colors">
+                            {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
+                        </button>
+                        <button onClick={onWishlistClick} className="relative text-slate-400 hover:text-purple-400 transition-colors">
+                            <HeartIcon filled={false} />
+                            {wishlistCount > 0 && <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">{wishlistCount}</span>}
+                        </button>
+                        <button onClick={onCartClick} className="relative text-slate-400 hover:text-purple-400 transition-colors">
+                            <ShoppingCartIcon />
+                            {cartCount > 0 && <span className="absolute -top-2 -right-2 bg-purple-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">{cartCount}</span>}
+                        </button>
+                        <button onClick={() => setIsMenuOpen(true)} className="lg:hidden text-slate-400 hover:text-purple-400">
+                            <MenuIcon />
+                        </button>
+                    </div>
+                </div>
+            </nav>
+
+            {/* Mobile Menu */}
+            <div className={`fixed inset-0 z-50 bg-slate-900/90 backdrop-blur-xl transition-transform transform ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'} lg:hidden`}>
+                <div className="flex justify-end p-6">
+                    <button onClick={() => setIsMenuOpen(false)} className="text-white">
+                        <XIcon />
+                    </button>
+                </div>
+                <div className="flex flex-col items-center justify-center h-full space-y-8">
+                    {navLinks.map(link => (
+                         <a key={link} href="#" onClick={() => setIsMenuOpen(false)} className="text-3xl font-orbitron text-white hover:text-purple-400 transition-colors">
+                            <GlitchText>{link}</GlitchText>
+                        </a>
+                    ))}
+                </div>
             </div>
-            <GlassyCard className="p-6">
-              <h1 className="text-3xl font-bold text-fuchsia-200 mb-2 font-curly">{product.name}</h1>
-              <p className="text-4xl font-extrabold text-fuchsia-400 mb-4">${product.price.toFixed(2)}</p>
-              <p className="text-fuchsia-100 mb-6 leading-relaxed">{product.description}</p>
-              <button
-                onClick={() => onAddToCart(product)}
-                className="w-full py-3 px-6 rounded-xl font-semibold text-white bg-fuchsia-600 hover:bg-fuchsia-500 transition-colors duration-200"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block mr-2" size={20}><path d="M11 15a4 4 0 0 0-3.34-4" /><path d="M14.5 13.5l-2.45-2.43 1.94-1.8 2.05 2.05-1.9 1.92Z" /><path d="M17.5 11.5 22 7l-5-5-5 5" /><path d="M19 15l-2-2" /><path d="M2 13c0-2.2.8-4.2 2.1-5.6L10 2l4.6 4.4c.7.9 1.4 1.9 1.5 3.1" /><path d="M12 22s-2-2-3.5-5.5a2.5 2.5 0 0 1 5 0C14.5 20 12 22 12 22Z" /></svg> Add to Cart
-              </button>
-            </GlassyCard>
-          </div>
-        ) : (
-          <div className="text-center text-fuchsia-200">Product not found.</div>
-        )}
-      </div>
+        </>
     );
-  };
+};
 
-  // Cart Page
-  const CartPage = () => {
+const Hero = () => {
+    return (
+        <div className="relative h-[80vh] min-h-[500px] flex items-center justify-center text-center overflow-hidden">
+            <div className="absolute inset-0 bg-slate-900 z-0">
+                <video
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="absolute inset-0 w-full h-full object-cover opacity-20"
+                    poster="https://placehold.co/1920x1080/1a1a1a/1a1a1a?text=+"
+                >
+                    {/* In a real scenario, you'd host a cool background video */}
+                    {/* <source src="/path/to/video.mp4" type="video/mp4" /> */}
+                </video>
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/50 to-transparent"></div>
+            </div>
+            <div className="relative z-10 px-4">
+                <h1 className="text-4xl md:text-6xl font-orbitron font-extrabold text-white mb-4 animate-fade-in-down">
+                    Premium Accessories. <br/> <GlitchText>Next-Level Style.</GlitchText>
+                </h1>
+                <p className="text-lg md:text-xl text-slate-300 max-w-2xl mx-auto mb-8 animate-fade-in-up">
+                    Engineered for the modern enthusiast. Discover top-tier gear, designed for performance and aesthetics, delivered nationwide in Pakistan.
+                </p>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-up animation-delay-300">
+                    <AnimatedButton className="w-full sm:w-auto">Shop Now</AnimatedButton>
+                    <AnimatedButton className="w-full sm:w-auto" secondary>Best Sellers</AnimatedButton>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const CategoriesSection = ({ onSelectCategory }) => {
+    return (
+        <div className="container mx-auto px-4 py-16 text-center">
+            <h2 className="text-3xl md:text-4xl font-orbitron font-bold text-white mb-2">Browse By Category</h2>
+            <p className="text-slate-400 mb-10">Find exactly what you're looking for.</p>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
+                {categories.map((cat) => (
+                    <div
+                        key={cat.name}
+                        onClick={() => onSelectCategory(cat.name)}
+                        className="group relative bg-slate-800/50 border border-slate-700 rounded-lg p-6 hover:border-purple-500 hover:-translate-y-2 transition-all duration-300 cursor-pointer overflow-hidden"
+                    >
+                        <div className="absolute inset-0 bg-gradient-to-br from-purple-600/20 to-green-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <div className="relative z-10">
+                            <div className="text-4xl mb-4 transition-transform duration-300 group-hover:scale-110">{cat.icon}</div>
+                            <h3 className="text-lg font-bold text-white">{cat.name}</h3>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+const ProductCard = ({ product, onAddToCart, onQuickView }) => {
+    const { isInWishlist, toggleWishlist } = useWishlist();
+    const isSoldOut = product.stockStatus === 'Sold Out';
+
+    return (
+        <div className="group relative bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/20 hover:-translate-y-2 hover:border-purple-600">
+            <div className="absolute top-3 left-3 z-10">
+                {product.bestseller && (
+                    <span className="bg-yellow-400 text-black text-xs font-bold px-2 py-1 rounded-full animate-pulse">Best Seller</span>
+                )}
+            </div>
+            <div className="absolute top-3 right-3 z-10">
+                 <button onClick={() => toggleWishlist(product.id)} className={`h-10 w-10 rounded-full flex items-center justify-center transition-all duration-300 ${isInWishlist(product.id) ? 'bg-pink-500/80 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-pink-500/50'}`}>
+                    <HeartIcon filled={isInWishlist(product.id)} />
+                </button>
+            </div>
+            <div className="relative h-64 overflow-hidden">
+                <img src={product.image} alt={product.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                 <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${isSoldOut ? 'bg-black/70 opacity-100' : 'bg-black/50 opacity-0 group-hover:opacity-100'}`}>
+                    {isSoldOut ? (
+                        <span className="text-white font-bold text-lg border-2 border-red-500 px-4 py-2 rounded-lg">SOLD OUT</span>
+                    ) : (
+                        <div className="space-x-2">
+                             <button onClick={() => onQuickView(product)} className="bg-slate-100 text-slate-900 font-bold px-4 py-2 rounded-md hover:bg-purple-400 hover:text-white transition-all">Quick View</button>
+                        </div>
+                    )}
+                </div>
+            </div>
+            <div className="p-4">
+                <p className="text-sm text-purple-400 font-semibold">{product.category}</p>
+                <h3 className="text-lg font-bold text-white truncate mt-1">{product.name}</h3>
+                <div className="flex items-center justify-between mt-2">
+                    <p className="text-xl font-orbitron text-green-400">Rs. {product.price.toLocaleString()}</p>
+                     <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
+                        product.stockStatus === 'In Stock' ? 'bg-green-500/20 text-green-400' :
+                        product.stockStatus === 'Limited' ? 'bg-yellow-500/20 text-yellow-400' :
+                        'bg-red-500/20 text-red-400'
+                    }`}>{product.stockStatus}</span>
+                </div>
+                <button
+                    disabled={isSoldOut}
+                    onClick={() => onAddToCart(product, 1)}
+                    className="w-full mt-4 bg-slate-700 text-slate-200 font-bold py-2 rounded-lg hover:bg-purple-600 hover:text-white transition-all duration-300 disabled:bg-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed"
+                >
+                   {isSoldOut ? 'Unavailable' : 'Add to Cart'}
+                </button>
+            </div>
+        </div>
+    );
+};
+
+const ProductsGrid = ({ products, onAddToCart, onQuickView }) => {
+    return (
+        <div className="container mx-auto px-4 py-16">
+            <h2 className="text-3xl md:text-4xl font-orbitron font-bold text-white mb-10 text-center">
+                <GlitchText>Our Arsenal</GlitchText>
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
+                {products.map(p => (
+                    <ProductCard key={p.id} product={p} onAddToCart={onAddToCart} onQuickView={onQuickView} />
+                ))}
+            </div>
+        </div>
+    );
+};
+
+const BestsellersSection = ({ products, onAddToCart, onQuickView }) => {
+    const bestsellers = products.filter(p => p.bestseller);
+    const scrollContainerRef = useRef(null);
+
+    const scroll = (direction) => {
+        if (scrollContainerRef.current) {
+            const { current } = scrollContainerRef;
+            const scrollAmount = current.offsetWidth * 0.8;
+            current.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
+        }
+    };
+
+    return (
+        <div className="py-16 bg-slate-900/50">
+            <div className="container mx-auto px-4">
+                <h2 className="text-3xl md:text-4xl font-orbitron font-bold text-white mb-10 text-center">
+                    Player Favorites
+                </h2>
+                <div className="relative">
+                     <button onClick={() => scroll(-1)} className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-slate-800/50 hover:bg-purple-500/50 transition-colors rounded-full p-2 hidden md:block"><ChevronLeft/></button>
+                     <div ref={scrollContainerRef} className="flex space-x-6 overflow-x-auto scrollbar-hide pb-4 -mb-4">
+                        {bestsellers.map(p => (
+                           <div key={p.id} className="flex-shrink-0 w-full sm:w-1/2 md:w-1/3 lg:w-1/4">
+                                <ProductCard product={p} onAddToCart={onAddToCart} onQuickView={onQuickView} />
+                           </div>
+                        ))}
+                    </div>
+                     <button onClick={() => scroll(1)} className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-slate-800/50 hover:bg-purple-500/50 transition-colors rounded-full p-2 hidden md:block"><ChevronRight/></button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const BundlesSection = () => (
+    <div className="container mx-auto px-4 py-16">
+        <h2 className="text-3xl md:text-4xl font-orbitron font-bold text-white mb-10 text-center">
+            Bundles & Offers
+        </h2>
+        <div className="grid md:grid-cols-2 gap-8">
+            <div className="group relative bg-slate-800/50 border border-slate-700 rounded-xl p-8 overflow-hidden hover:border-green-500 transition-all">
+                <div className="absolute -top-10 -right-10 text-green-500/10 text-9xl font-bold z-0 transition-transform duration-300 group-hover:scale-110">🔥</div>
+                <div className="relative z-10">
+                    <h3 className="text-2xl font-bold text-white font-orbitron">The Starter Kit</h3>
+                    <p className="text-slate-400 mt-2">Everything you need to get started. Includes a bong, grinder, and papers.</p>
+                    <p className="text-2xl font-bold text-green-400 mt-4">Save Rs. 1,500+</p>
+                    <AnimatedButton className="mt-6">View Bundle</AnimatedButton>
+                </div>
+            </div>
+            <div className="group relative bg-slate-800/50 border border-slate-700 rounded-xl p-8 overflow-hidden hover:border-purple-500 transition-all">
+                 <div className="absolute -bottom-10 -left-10 text-purple-500/10 text-9xl font-bold z-0 transition-transform duration-300 group-hover:scale-110">💨</div>
+                <div className="relative z-10">
+                    <h3 className="text-2xl font-bold text-white font-orbitron">The Vape Pro Pack</h3>
+                    <p className="text-slate-400 mt-2">Upgrade your vape game. Pulsar Vaporizer + Electric Grinder.</p>
+                    <p className="text-2xl font-bold text-purple-400 mt-4">Save Rs. 2,000+</p>
+                    <AnimatedButton className="mt-6">View Bundle</AnimatedButton>
+                </div>
+            </div>
+        </div>
+    </div>
+);
+
+const TestimonialsSection = () => {
+    const [currentIndex, setCurrentIndex] = useState(0);
+
+    const next = () => setCurrentIndex((prev) => (prev + 1) % testimonials.length);
+    const prev = () => setCurrentIndex((prev) => (prev - 1 + testimonials.length) % testimonials.length);
+
+    useEffect(() => {
+        const timer = setInterval(next, 5000);
+        return () => clearInterval(timer);
+    }, []);
+
+    return (
+        <div className="bg-slate-900/50 py-20">
+            <div className="container mx-auto px-4 text-center">
+                <h2 className="text-3xl md:text-4xl font-orbitron font-bold text-white mb-12">
+                    What Our Crew Says
+                </h2>
+                <div className="relative h-48 md:h-36">
+                    {testimonials.map((testimonial, index) => (
+                        <div key={index} className={`absolute inset-0 transition-opacity duration-500 ease-in-out ${index === currentIndex ? 'opacity-100' : 'opacity-0'}`}>
+                           <div className="flex flex-col items-center">
+                                <p className="text-lg text-slate-300 max-w-3xl mx-auto italic">"{testimonial.review}"</p>
+                                <p className="text-white font-bold mt-4">{testimonial.name}, <span className="text-purple-400">{testimonial.city}</span> {testimonial.avatar}</p>
+                           </div>
+                        </div>
+                    ))}
+                </div>
+                <div className="flex justify-center space-x-2 mt-8">
+                     {testimonials.map((_, index) => (
+                        <button key={index} onClick={() => setCurrentIndex(index)} className={`w-3 h-3 rounded-full transition-colors ${index === currentIndex ? 'bg-purple-500' : 'bg-slate-600 hover:bg-slate-500'}`}></button>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const AboutSection = () => (
+    <div className="relative py-24 bg-fixed bg-cover bg-center" style={{ backgroundImage: "url('https://placehold.co/1920x1080/1a1a1a/22c55e?text=About+BG')" }}>
+         <div className="absolute inset-0 bg-slate-900/80"></div>
+        <div className="relative container mx-auto px-4 text-center text-white">
+            <h2 className="text-4xl font-orbitron font-bold">Our Story</h2>
+            <p className="max-w-2xl mx-auto mt-6 text-slate-300">
+                Smoke Time was born from a passion for premium gear and a frustration with the lack of quality options in Pakistan. We're gamers, enthusiasts, and connoisseurs on a mission to bring world-class smoking accessories to our community. No compromises, just the best.
+            </p>
+        </div>
+    </div>
+);
+
+const NewsletterSection = () => {
+    const [email, setEmail] = useState('');
+    const [message, setMessage] = useState('');
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (email && /\S+@\S+\.\S+/.test(email)) {
+            let emails = JSON.parse(localStorage.getItem('smokeTimeEmails') || '[]');
+            if (!emails.includes(email)) {
+                emails.push(email);
+                localStorage.setItem('smokeTimeEmails', JSON.stringify(emails));
+                setMessage('Thanks for subscribing! Stay tuned for epic drops.');
+            } else {
+                 setMessage('You are already subscribed!');
+            }
+            setEmail('');
+        } else {
+            setMessage('Please enter a valid email address.');
+        }
+        setTimeout(() => setMessage(''), 3000);
+    };
+
+    return (
+        <div className="container mx-auto px-4 py-16 text-center">
+            <h2 className="text-3xl md:text-4xl font-orbitron font-bold text-white mb-2">Join The Inner Circle</h2>
+            <p className="text-slate-400 mb-8">Get exclusive deals, new drop alerts, and more.</p>
+            <form onSubmit={handleSubmit} className="max-w-md mx-auto flex flex-col sm:flex-row gap-4">
+                <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="your.email@domain.com"
+                    className="flex-grow bg-slate-800 border border-slate-700 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"
+                />
+                <AnimatedButton type="submit">Subscribe</AnimatedButton>
+            </form>
+            {message && <p className="mt-4 text-green-400">{message}</p>}
+        </div>
+    );
+};
+
+
+const Footer = () => (
+    <footer className="bg-slate-900 border-t border-slate-800 text-slate-400">
+        <div className="container mx-auto px-4 py-12">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 className="text-xl font-orbitron font-bold text-white mb-4"><GlitchText>SMOKE TIME ⚡</GlitchText></h3>
+                    <p className="text-sm">Premium accessories, next-level style. Delivered across Pakistan.</p>
+                </div>
+                <div>
+                    <h4 className="font-bold text-white mb-4">Shop</h4>
+                    <ul className="space-y-2 text-sm">
+                        <li><a href="#" className="hover:text-purple-400">New Arrivals</a></li>
+                        <li><a href="#" className="hover:text-purple-400">Best Sellers</a></li>
+                        <li><a href="#" className="hover:text-purple-400">All Products</a></li>
+                        <li><a href="#" className="hover:text-purple-400">Deals</a></li>
+                    </ul>
+                </div>
+                 <div>
+                    <h4 className="font-bold text-white mb-4">Support</h4>
+                    <ul className="space-y-2 text-sm">
+                        <li><a href="#" className="hover:text-purple-400">Contact Us</a></li>
+                        <li><a href="#" className="hover:text-purple-400">FAQs</a></li>
+                        <li><a href="#" className="hover:text-purple-400">Shipping Policy</a></li>
+                        <li><a href="#" className="hover:text-purple-400">Returns</a></li>
+                    </ul>
+                </div>
+                 <div>
+                    <h4 className="font-bold text-white mb-4">Connect</h4>
+                     <div className="flex space-x-4">
+                        <a href="#" className="hover:text-purple-400">IG</a>
+                        <a href="#" className="hover:text-purple-400">WA</a>
+                        <a href="#" className="hover:text-purple-400">TT</a>
+                    </div>
+                </div>
+            </div>
+            <div className="mt-12 pt-8 border-t border-slate-800 text-center text-sm">
+                <p className="font-bold text-yellow-500 mb-2">Disclaimer:</p>
+                <p className="max-w-2xl mx-auto">
+                    Smoke Time sells legal smoking accessories only. No controlled substances are sold. Please check your local laws before purchasing. You must be of legal smoking age in your jurisdiction to buy from this site.
+                </p>
+                <p className="mt-4">&copy; {new Date().getFullYear()} Smoke Time. All Rights Reserved. Built for Pakistan 🇵🇰.</p>
+            </div>
+        </div>
+    </footer>
+);
+
+const CartDrawer = ({ isOpen, onClose, cart, updateQuantity, removeFromCart, setPage }) => {
     const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
+    const handleCheckout = () => {
+        onClose();
+        setPage('checkout');
+    };
+
     return (
-      <div className="container mx-auto px-4 py-8 min-h-screen">
-        <h2 className="text-2xl sm:text-3xl font-bold text-fuchsia-200 mb-6 text-center font-curly">Your Cart</h2>
-        <GlassyCard className="mb-8">
-          {cart.length === 0 ? (
-            <p className="text-center text-fuchsia-200 text-lg">Your cart is empty.</p>
-          ) : (
-            <ul className="space-y-4">
-              {cart.map(item => (
-                <li key={item.id} className="flex items-center space-x-4 border-b border-white/10 pb-4 last:border-b-0 last:pb-0">
-                  <img src={item.image} alt={item.name} className="w-20 h-20 rounded-xl object-cover" onError={(e) => { e.target.src = 'https://placehold.co/600x400/312e81/c7d2fe?text=Image+Error'; }} />
-                  <div className="flex-1">
-                    <p className="font-semibold text-fuchsia-100">{item.name}</p>
-                    <p className="text-fuchsia-300 font-bold">${item.price.toFixed(2)}</p>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                      className="text-fuchsia-200 bg-white/10 rounded-full w-8 h-8 flex items-center justify-center hover:bg-white/20 transition-colors"
-                    >-</button>
-                    <span className="text-fuchsia-100 font-medium">{item.quantity}</span>
-                    <button
-                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                      className="text-fuchsia-200 bg-white/10 rounded-full w-8 h-8 flex items-center justify-center hover:bg-white/20 transition-colors"
-                    >+</button>
-                  </div>
-                  <button onClick={() => onRemoveFromCart(item.id)} className="text-fuchsia-400 hover:text-red-500 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-x" size={20}><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </GlassyCard>
-        {cart.length > 0 && (
-          <GlassyCard className="p-6 text-right">
-            <h3 className="text-2xl font-bold text-fuchsia-100">Subtotal: <span className="text-fuchsia-400">${subtotal.toFixed(2)}</span></h3>
-            <button
-              onClick={() => onNavigate('checkout')}
-              className="mt-6 w-full py-3 px-6 rounded-xl font-semibold text-white bg-fuchsia-600 hover:bg-fuchsia-500 transition-colors duration-200"
+        <div className={`fixed inset-0 z-50 transition-all duration-500 ${isOpen ? 'bg-black/60' : 'bg-transparent pointer-events-none'}`}>
+            <div
+                className={`fixed top-0 right-0 h-full w-full max-w-md bg-slate-900 shadow-2xl shadow-purple-900/50 transform transition-transform duration-500 ease-in-out ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
             >
-              Proceed to Checkout
-            </button>
-          </GlassyCard>
-        )}
-      </div>
+                <div className="flex flex-col h-full">
+                    <div className="flex items-center justify-between p-6 border-b border-slate-800">
+                        <h2 className="text-2xl font-orbitron text-white">Your Cart</h2>
+                        <button onClick={onClose} className="text-slate-400 hover:text-white"><XIcon /></button>
+                    </div>
+                    {cart.length === 0 ? (
+                         <div className="flex-grow flex flex-col items-center justify-center text-center p-6">
+                            <ShoppingCartIcon className="h-16 w-16 text-slate-600 mb-4" />
+                            <h3 className="text-xl font-bold text-white">Your cart is empty</h3>
+                            <p className="text-slate-400 mt-2">Looks like you haven't added anything yet.</p>
+                            <AnimatedButton onClick={onClose} className="mt-6">Start Shopping</AnimatedButton>
+                         </div>
+                    ) : (
+                        <>
+                            <div className="flex-grow p-6 overflow-y-auto space-y-4">
+                                {cart.map(item => (
+                                    <div key={item.id} className="flex items-center gap-4">
+                                        <img src={item.image} alt={item.name} className="w-20 h-20 rounded-lg object-cover" />
+                                        <div className="flex-grow">
+                                            <p className="font-bold text-white">{item.name}</p>
+                                            <p className="text-sm text-slate-400">Rs. {item.price.toLocaleString()}</p>
+                                            <div className="flex items-center mt-2">
+                                                <button onClick={() => updateQuantity(item.id, item.quantity - 1)} className="p-1 rounded-full bg-slate-700 hover:bg-slate-600"><MinusIcon /></button>
+                                                <span className="w-10 text-center font-bold">{item.quantity}</span>
+                                                <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="p-1 rounded-full bg-slate-700 hover:bg-slate-600"><PlusIcon /></button>
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="font-bold text-white">Rs. {(item.price * item.quantity).toLocaleString()}</p>
+                                            <button onClick={() => removeFromCart(item.id)} className="text-red-500 hover:text-red-400 text-sm mt-2"><Trash2Icon className="inline-block mr-1" /> Remove</button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="p-6 border-t border-slate-800">
+                                <div className="flex justify-between items-center text-lg">
+                                    <span className="text-slate-300">Subtotal:</span>
+                                    <span className="font-bold text-green-400 font-orbitron">Rs. {subtotal.toLocaleString()}</span>
+                                </div>
+                                <p className="text-xs text-slate-500 mt-2">Shipping & taxes calculated at checkout.</p>
+                                <AnimatedButton onClick={handleCheckout} className="w-full mt-4">Proceed to Checkout</AnimatedButton>
+                            </div>
+                        </>
+                    )}
+                </div>
+            </div>
+        </div>
     );
-  };
-
-  // Checkout Page
-  const CheckoutPage = () => (
-    <div className="container mx-auto px-4 py-8 min-h-screen">
-      <h2 className="text-2xl sm:text-3xl font-bold text-fuchsia-200 mb-6 text-center font-curly">Checkout</h2>
-      <GlassyCard className="max-w-xl mx-auto p-6">
-        <form className="space-y-4 text-fuchsia-100">
-          <div>
-            <label className="block mb-1 font-semibold">Full Name</label>
-            <input type="text" className="w-full p-3 rounded-lg bg-white/10 border border-white/20 focus:outline-none focus:border-fuchsia-400 transition-colors" />
-          </div>
-          <div>
-            <label className="block mb-1 font-semibold">Address</label>
-            <input type="text" className="w-full p-3 rounded-lg bg-white/10 border border-white/20 focus:outline-none focus:border-fuchsia-400 transition-colors" />
-          </div>
-          <div>
-            <label className="block mb-1 font-semibold">Email</label>
-            <input type="email" className="w-full p-3 rounded-lg bg-white/10 border border-white/20 focus:outline-none focus:border-fuchsia-400 transition-colors" />
-          </div>
-          <div>
-            <label className="block mb-1 font-semibold">Phone</label>
-            <input type="tel" className="w-full p-3 rounded-lg bg-white/10 border border-white/20 focus:outline-none focus:border-fuchsia-400 transition-colors" />
-          </div>
-          <div className="py-4 text-center text-lg font-bold text-fuchsia-400 border-t border-white/20">
-            Placeholder Payment Section
-          </div>
-          <button
-            type="button"
-            onClick={() => setShowConfirmModal(true)}
-            className="w-full py-3 px-6 rounded-xl font-semibold text-white bg-fuchsia-600 hover:bg-fuchsia-500 transition-colors duration-200"
-          >
-            Place Order
-          </button>
-        </form>
-      </GlassyCard>
-    </div>
-  );
-
-  // Header Component
-  const Header = () => (
-    <header className="sticky top-0 z-50 py-4 px-6 sm:px-8 border-b border-white/10 backdrop-blur-md bg-white/5">
-      <div className="container mx-auto flex flex-col sm:flex-row items-center justify-between">
-        {/* Logo */}
-        <button className="flex items-center space-x-2 cursor-pointer mb-4 sm:mb-0" onClick={() => onNavigate('home')}>
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-leaf w-8 h-8 text-fuchsia-400"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.4 18.5 4.5c.7.1 1.4.2 2.1.3a2 2 0 0 0 1.5-2.4c-.1-.7-.8-1.3-1.5-1.4C16.1.7 15.1 2 11 8c-.8.5-1.5 1-2.2 1.5a6 6 0 0 0 3 9.5c.3.2.6.3 1 .5c.2-.2.4-.3.7-.6c-.2-.2-.5-.4-.7-.6-.3-.3-.6-.5-.9-.8z"/></svg>
-          <span className="text-xl font-bold text-fuchsia-100 font-curly">Smoke Time</span>
-        </button>
-
-        {/* Search Bar */}
-        <div className="relative w-full max-w-sm sm:max-w-xs md:max-w-md mx-auto">
-          <input
-            type="text"
-            placeholder="Search products..."
-            className="w-full p-2 pl-10 rounded-full bg-white/10 border border-white/20 focus:outline-none focus:border-fuchsia-400 transition-colors text-fuchsia-100 placeholder-fuchsia-300/50"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                onNavigate('shop');
-              }
-            }}
-          />
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 -translate-y-1/2 text-fuchsia-300" size={20}><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-        </div>
-
-        {/* Desktop Navigation */}
-        <nav className="hidden sm:flex items-center space-x-8 mt-4 sm:mt-0">
-          <button onClick={() => onNavigate('home')} className="flex items-center text-fuchsia-100 hover:text-fuchsia-400 transition-colors duration-200 cursor-pointer">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2" size={20}><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home
-          </button>
-          <button onClick={() => onNavigate('shop')} className="flex items-center text-fuchsia-100 hover:text-fuchsia-400 transition-colors duration-200 cursor-pointer">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2" size={20}><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.4 18.5 4.5c.7.1 1.4.2 2.1.3a2 2 0 0 0 1.5-2.4c-.1-.7-.8-1.3-1.5-1.4C16.1.7 15.1 2 11 8c-.8.5-1.5 1-2.2 1.5a6 6 0 0 0 3 9.5c.3.2.6.3 1 .5c.2-.2.4-.3.7-.6c-.2-.2-.5-.4-.7-.6-.3-.3-.6-.5-.9-.8z"/></svg>Shop
-          </button>
-          <button onClick={() => onNavigate('categories')} className="flex items-center text-fuchsia-100 hover:text-fuchsia-400 transition-colors duration-200 cursor-pointer">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2" size={20}><path d="M2.5 17a6 6 0 0 0 4.25-10.3A6 6 0 0 0 11.5 4c.3 0 .7.1 1 .2A6 6 0 0 1 20 5a6 6 0 0 1 0 12c-2.4 0-5.1-.9-7.1-2.9A6 6 0 0 0 2.5 17Z"/><path d="M14.5 9c-.8.8-2 .8-2.8 0"/><path d="m17 12-2-2"/><path d="m14 14-2-2"/><path d="m11 11-2-2"/></svg>
-            Categories
-          </button>
-        </nav>
-
-        {/* Icons and Mobile Menu Button */}
-        <div className="flex items-center space-x-4 mt-4 sm:mt-0">
-          <button className="relative cursor-pointer" onClick={() => onNavigate('cart')}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-shopping-cart text-fuchsia-200 hover:text-fuchsia-400 transition-colors duration-200" ><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
-            {totalItems > 0 && (
-              <span className="absolute -top-2 -right-2 bg-fuchsia-600 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">{totalItems}</span>
-            )}
-          </button>
-          <button className="relative cursor-pointer">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-user text-fuchsia-200 hover:text-fuchsia-400 transition-colors duration-200" ><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          </button>
-          <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="text-fuchsia-200 sm:hidden transition-transform duration-200"
-          >
-            {isMenuOpen ?
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-x" size={28}><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-              :
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-menu" size={28}><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
-            }
-          </button>
-        </div>
-      </div>
-
-      {/* Mobile Menu */}
-      <div className={`fixed inset-0 z-40 bg-black/50 backdrop-blur-xl transform transition-transform duration-300 ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'} sm:hidden`}>
-        <div className="absolute top-0 right-0 h-full w-3/4 bg-violet-950 p-6 flex flex-col items-start space-y-6 shadow-lg">
-          <button
-            onClick={() => setIsMenuOpen(false)}
-            className="self-end text-fuchsia-200 hover:text-fuchsia-400 transition-colors duration-200"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-x" size={28}><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-          </button>
-          <button onClick={() => onNavigate('home')} className="flex items-center text-fuchsia-100 text-lg font-semibold hover:text-fuchsia-400 transition-colors duration-200 w-full">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-home mr-3" ><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Home
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chevron-right ml-auto" ><path d="m9 18 6-6-6-6"/></svg>
-          </button>
-          <button onClick={() => onNavigate('shop')} className="flex items-center text-fuchsia-100 text-lg font-semibold hover:text-fuchsia-400 transition-colors duration-200 w-full">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-leaf mr-3" ><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.4 18.5 4.5c.7.1 1.4.2 2.1.3a2 2 0 0 0 1.5-2.4c-.1-.7-.8-1.3-1.5-1.4C16.1.7 15.1 2 11 8c-.8.5-1.5 1-2.2 1.5a6 6 0 0 0 3 9.5c.3.2.6.3 1 .5c.2-.2.4-.3.7-.6c-.2-.2-.5-.4-.7-.6-.3-.3-.6-.5-.9-.8z"/></svg> Shop
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chevron-right ml-auto" ><path d="m9 18 6-6-6-6"/></svg>
-          </button>
-          <button onClick={() => onNavigate('categories')} className="flex items-center text-fuchsia-100 text-lg font-semibold hover:text-fuchsia-400 transition-colors duration-200 w-full">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-sparkles mr-3" ><path d="M2.5 17a6 6 0 0 0 4.25-10.3A6 6 0 0 0 11.5 4c.3 0 .7.1 1 .2A6 6 0 0 1 20 5a6 6 0 0 1 0 12c-2.4 0-5.1-.9-7.1-2.9A6 6 0 0 0 2.5 17Z"/><path d="M14.5 9c-.8.8-2 .8-2.8 0"/><path d="m17 12-2-2"/><path d="m14 14-2-2"/><path d="m11 11-2-2"/></svg> Categories
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chevron-right ml-auto" ><path d="m9 18 6-6-6-6"/></svg>
-          </button>
-          <button onClick={() => onNavigate('cart')} className="flex items-center text-fuchsia-100 text-lg font-semibold hover:text-fuchsia-400 transition-colors duration-200 w-full">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-shopping-cart mr-3" ><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg> Cart ({totalItems})
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucude-chevron-right ml-auto" ><path d="m9 18 6-6-6-6"/></svg>
-          </button>
-        </div>
-      </div>
-    </header>
-  );
-
-  // Footer Component
-  const Footer = () => (
-    <footer className="p-8 border-t border-white/10 backdrop-blur-sm bg-white/5 text-fuchsia-200">
-      <div className="container mx-auto text-center space-y-6">
-        <div className="flex justify-center space-x-6">
-          <button className="hover:text-fuchsia-400 transition-colors duration-200"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-instagram" ><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.5" y1="6.5" y2="6.5"/></svg></button>
-          <button className="hover:text-fuchsia-400 transition-colors duration-200"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-twitter" ><path d="M22 4s-.7 2.1-2 3.4c-.6.8-1.5 1.5-2.4 1.7a2 2 0 0 1-2.9-.6c-1.2-1.2-2.3-2.3-3.6-2.9-2.2-.8-4.1-.3-5.3.8-1.1.9-1.5 2.1-1.2 3.6.4 1.7 2.2 3.2 4.1 4.2 1.9 1 3.8 1.5 5.7 1.2s3.6-.8 4.9-2.1c.9-.9 1.7-2.1 2.3-3.4.6-1.3.8-2.6.4-4-1.1-3.6-4.5-5.9-8.4-5.9-2.3 0-4.5.7-6.3 2.1-1.8 1.4-3.1 3.2-3.8 5.2-.7 2-.5 4.1.3 6.1s2 3.8 3.6 5.3c1.6 1.5 3.5 2.7 5.7 3.3 2.2.6 4.5.3 6.5-.9 2-.9 3.6-2.4 4.8-4.4a8 8 0 0 0 .9-3.7V9a1 1 0 0 0-1-1h-2a1 1 0 0 0-1 1v.7c-.1-.1-.3-.2-.5-.3a5 5 0 0 0-5.3-.8c-1.3.6-2.5 1.7-3.6 2.9-1.1 1.2-1.5 2.4-1.2 3.6s2.2 3.2 4.1 4.2c1.9 1 3.8 1.5 5.7 1.2s3.6-.8 4.9-2.1c.9-.9 1.7-2.1 2.3-3.4.6-1.3.8-2.6.4-4-1.1-3.6-4.5-5.9-8.4-5.9z"/></svg></button>
-          <button className="hover:text-fuchsia-400 transition-colors duration-200"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-facebook" ><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></button>
-        </div>
-        <div>
-          <h3 className="text-lg font-bold mb-2 font-curly">Join Our Newsletter</h3>
-          <p className="text-sm mb-4">Stay up-to-date with our latest drops and exclusive offers.</p>
-          <div className="flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-2">
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="w-full sm:w-64 p-2 rounded-xl bg-white/10 border border-white/20 focus:outline-none focus:border-fuchsia-400 transition-colors text-fuchsia-100"
-            />
-            <button
-              className="w-full sm:w-auto py-2 px-6 rounded-xl font-semibold bg-fuchsia-600 text-white hover:bg-fuchsia-500 transition-colors duration-200"
-            >
-              Subscribe
-            </button>
-          </div>
-        </div>
-        <p className="text-sm opacity-50">&copy; 2024 Smoke Time. All rights reserved.</p>
-      </div>
-    </footer>
-  );
-
-  return (
-    <div className="font-poppins text-white min-h-screen flex flex-col bg-gradient-to-br from-gray-900 to-purple-900 overflow-x-hidden">
-      {/* Google Fonts Link */}
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
-        @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&display=swap');
-
-        .font-curly {
-          font-family: 'Dancing Script', cursive;
-        }
-      `}</style>
-      <Header />
-      <main className="flex-grow">
-        {renderPage()}
-      </main>
-      <Footer />
-      {/* Message Modal */}
-      {messageModal.visible && (
-        <ConfirmationModal
-          title={messageModal.title}
-          message={messageModal.message}
-          onConfirm={() => setMessageModal({ visible: false })}
-          confirmText="OK"
-        />
-      )}
-      {/* Checkout Confirmation Modal */}
-      {showConfirmModal && (
-        <ConfirmationModal
-          title="Confirm Your Order"
-          message="Are you sure you want to place this order?"
-          onConfirm={onClearCart}
-          onCancel={() => setShowConfirmModal(false)}
-          confirmText="Place Order"
-        />
-      )}
-    </div>
-  );
 };
 
-export default App;
+const ProductModal = ({ product, onClose, onAddToCart }) => {
+    const [quantity, setQuantity] = useState(1);
+    const [selectedOptions, setSelectedOptions] = useState({});
+
+    useEffect(() => {
+        if(product && product.options){
+            const initialOptions = {};
+            Object.keys(product.options).forEach(key => {
+                initialOptions[key] = product.options[key][0];
+            });
+            setSelectedOptions(initialOptions);
+        }
+    }, [product]);
+
+    if (!product) return null;
+
+    const handleOptionChange = (optionName, value) => {
+        setSelectedOptions(prev => ({...prev, [optionName]: value}));
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+            <div className="relative bg-slate-800 border border-slate-700 rounded-xl w-full max-w-4xl max-h-[90vh] flex flex-col md:flex-row overflow-hidden">
+                <button onClick={onClose} className="absolute top-4 right-4 text-slate-400 hover:text-white z-20"><XIcon/></button>
+                <div className="w-full md:w-1/2 p-4">
+                     <img src={product.image} alt={product.name} className="w-full h-full object-contain rounded-lg" />
+                </div>
+                <div className="w-full md:w-1/2 p-8 flex flex-col overflow-y-auto">
+                    <p className="text-purple-400 font-semibold">{product.category}</p>
+                    <h2 className="text-3xl font-bold font-orbitron text-white mt-2">{product.name}</h2>
+                    <p className="text-3xl text-green-400 font-orbitron my-4">Rs. {product.price.toLocaleString()}</p>
+                    <p className="text-slate-300 leading-relaxed">{product.description}</p>
+                    
+                    {product.options && Object.keys(product.options).map(optionName => (
+                        <div key={optionName} className="mt-6">
+                            <label className="text-white font-semibold">{optionName}</label>
+                            <div className="flex flex-wrap gap-2 mt-2">
+                                {product.options[optionName].map(value => (
+                                    <button
+                                        key={value}
+                                        onClick={() => handleOptionChange(optionName, value)}
+                                        className={`px-4 py-2 text-sm rounded-full border transition-colors ${selectedOptions[optionName] === value ? 'bg-purple-600 border-purple-600 text-white' : 'bg-transparent border-slate-600 text-slate-300 hover:border-purple-500'}`}
+                                    >
+                                        {value}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+
+                    <div className="flex items-center mt-6">
+                        <p className="text-white font-semibold mr-4">Quantity</p>
+                        <div className="flex items-center border border-slate-600 rounded-full">
+                           <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="p-3 text-white"><MinusIcon/></button>
+                           <span className="w-12 text-center text-white font-bold">{quantity}</span>
+                           <button onClick={() => setQuantity(q => q + 1)} className="p-3 text-white"><PlusIcon/></button>
+                        </div>
+                    </div>
+
+                    <div className="mt-8 space-y-4">
+                         <AnimatedButton onClick={() => { onAddToCart(product, quantity); onClose(); }} className="w-full">Add to Cart</AnimatedButton>
+                         <AnimatedButton secondary className="w-full">Buy Now</AnimatedButton>
+                    </div>
+                    <button className="flex items-center justify-center gap-2 text-slate-400 hover:text-white mt-6"><Share2Icon/> Share</button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+
+const CheckoutPage = ({ cart, onBack, onOrderPlaced }) => {
+    const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const shipping = 250;
+    const total = subtotal + shipping;
+    
+    const [formData, setFormData] = useState({
+        name: '',
+        phone: '',
+        address: '',
+        city: 'Karachi',
+        cnic: ''
+    });
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        // Simple validation
+        if(formData.name && formData.phone && formData.address && formData.city) {
+            console.log('Order placed:', formData);
+            onOrderPlaced();
+        } else {
+            alert('Please fill all required fields.');
+        }
+    };
+
+
+    return (
+        <div className="container mx-auto px-4 py-16 animate-fade-in">
+            <button onClick={onBack} className="flex items-center gap-2 text-purple-400 hover:text-purple-300 mb-8"><ChevronLeft/> Back to Shop</button>
+            <h1 className="text-4xl font-orbitron text-white text-center mb-12"><GlitchText>Checkout</GlitchText></h1>
+            <div className="grid lg:grid-cols-2 gap-12">
+                {/* Shipping Form */}
+                <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-8">
+                    <h2 className="text-2xl font-bold text-white mb-6">Shipping Information</h2>
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div>
+                            <label className="text-sm font-semibold text-slate-300 block mb-2">Full Name *</label>
+                            <input type="text" name="name" value={formData.name} onChange={handleInputChange} required className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-purple-500" />
+                        </div>
+                        <div>
+                            <label className="text-sm font-semibold text-slate-300 block mb-2">Phone Number *</label>
+                            <input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} required placeholder="03xx-xxxxxxx" className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-purple-500" />
+                        </div>
+                         <div>
+                            <label className="text-sm font-semibold text-slate-300 block mb-2">Full Address *</label>
+                            <input type="text" name="address" value={formData.address} onChange={handleInputChange} required className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-purple-500" />
+                        </div>
+                         <div>
+                            <label className="text-sm font-semibold text-slate-300 block mb-2">City *</label>
+                            <select name="city" value={formData.city} onChange={handleInputChange} className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-purple-500">
+                                <option>Karachi</option>
+                                <option>Lahore</option>
+                                <option>Islamabad</option>
+                                <option>Rawalpindi</option>
+                                <option>Faisalabad</option>
+                                <option>Other</option>
+                            </select>
+                        </div>
+                         <div>
+                            <label className="text-sm font-semibold text-slate-300 block mb-2">CNIC (Optional)</label>
+                            <input type="text" name="cnic" value={formData.cnic} onChange={handleInputChange} placeholder="xxxxx-xxxxxxx-x" className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-purple-500" />
+                        </div>
+                        <div className="pt-4">
+                            <h3 className="text-xl font-bold text-white mb-4">Payment Method</h3>
+                            <div className="border border-purple-500 rounded-lg p-4 bg-slate-900">
+                                <p className="font-semibold text-white">Cash on Delivery (COD)</p>
+                                <p className="text-sm text-slate-400 mt-1">Pay with cash when your order is delivered.</p>
+                            </div>
+                        </div>
+                        <div className="pt-6">
+                            <AnimatedButton type="submit" className="w-full">Place Order</AnimatedButton>
+                        </div>
+                    </form>
+                </div>
+                {/* Order Summary */}
+                <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-8 h-fit">
+                    <h2 className="text-2xl font-bold text-white mb-6">Order Summary</h2>
+                    <div className="space-y-4">
+                        {cart.map(item => (
+                            <div key={item.id} className="flex justify-between items-center">
+                                <div className="flex items-center gap-4">
+                                    <img src={item.image} alt={item.name} className="w-16 h-16 rounded-lg object-cover" />
+                                    <div>
+                                        <p className="font-semibold text-white">{item.name}</p>
+                                        <p className="text-sm text-slate-400">Qty: {item.quantity}</p>
+                                    </div>
+                                </div>
+                                <p className="font-semibold text-white">Rs. {(item.price * item.quantity).toLocaleString()}</p>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="border-t border-slate-700 mt-6 pt-6 space-y-2">
+                        <div className="flex justify-between text-slate-300"><span>Subtotal</span><span>Rs. {subtotal.toLocaleString()}</span></div>
+                        <div className="flex justify-between text-slate-300"><span>Shipping</span><span>Rs. {shipping.toLocaleString()}</span></div>
+                        <div className="flex justify-between text-white font-bold text-xl pt-2"><span>Total</span><span className="text-green-400">Rs. {total.toLocaleString()}</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const OrderSuccessPage = ({ onBack }) => (
+    <div className="container mx-auto px-4 py-32 text-center animate-fade-in flex flex-col items-center">
+        <div className="text-6xl mb-4">🎉</div>
+        <h1 className="text-4xl font-orbitron text-white">Order Placed!</h1>
+        <p className="text-slate-300 mt-4 max-w-md">
+            Thank you for your purchase! Your order is being processed and will be on its way to you soon. You'll receive a confirmation call from our team shortly.
+        </p>
+        <AnimatedButton onClick={onBack} className="mt-8">Continue Shopping</AnimatedButton>
+    </div>
+);
+
+// --- MAIN APP COMPONENT ---
+export default function App() {
+    // App State
+    const [theme, setTheme] = useState('dark');
+    const [cart, setCart] = useState([]);
+    const [isCartOpen, setIsCartOpen] = useState(false);
+    const [selectedProduct, setSelectedProduct] = useState(null);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState(null);
+    const [page, setPage] = useState('home'); // home, checkout, success
+
+    // Theme Toggle
+    useEffect(() => {
+        if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    }, [theme]);
+
+    const toggleTheme = () => {
+        setTheme(prevTheme => (prevTheme === 'dark' ? 'light' : 'dark'));
+    };
+
+    // Cart Logic
+    const addToCart = (product, quantity) => {
+        setCart(prevCart => {
+            const existingItem = prevCart.find(item => item.id === product.id);
+            if (existingItem) {
+                return prevCart.map(item =>
+                    item.id === product.id
+                        ? { ...item, quantity: item.quantity + quantity }
+                        : item
+                );
+            }
+            return [...prevCart, { ...product, quantity }];
+        });
+        setIsCartOpen(true); // Open cart on add
+    };
+
+    const updateCartQuantity = (productId, newQuantity) => {
+        if (newQuantity < 1) {
+            removeFromCart(productId);
+        } else {
+            setCart(prevCart =>
+                prevCart.map(item =>
+                    item.id === productId ? { ...item, quantity: newQuantity } : item
+                )
+            );
+        }
+    };
+
+    const removeFromCart = (productId) => {
+        setCart(prevCart => prevCart.filter(item => item.id !== productId));
+    };
+
+    const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+
+    // Product Filtering
+    const filteredProducts = mockProducts.filter(product => {
+        const matchesCategory = selectedCategory ? product.category === selectedCategory : true;
+        const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesCategory && matchesSearch;
+    });
+    
+    const handleCategorySelect = (category) => {
+        setSelectedCategory(prev => prev === category ? null : category);
+    };
+
+    const handleOrderPlaced = () => {
+        setCart([]);
+        setPage('success');
+    };
+
+    return (
+        <WishlistProvider>
+            <div className={`bg-slate-900 text-slate-300 font-inter min-h-screen transition-colors duration-500 ${theme === 'light' ? 'dark:bg-gray-100 dark:text-slate-800' : ''}`}>
+                <style>
+                    {`
+                        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@400;600;700&display=swap');
+                        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+                        .font-inter { font-family: 'Inter', sans-serif; }
+                        
+                        .glitch {
+                            position: relative;
+                            text-shadow: 0.05em 0 0 rgba(168, 85, 247, 0.75), -0.025em -0.05em 0 rgba(34, 197, 94, 0.75), 0.025em 0.05em 0 rgba(236, 72, 153, 0.75);
+                            animation: glitch 500ms infinite;
+                        }
+
+                        .glitch span { position: absolute; top: 0; left: 0; }
+                        .glitch span:first-child { animation: glitch 650ms infinite; clip-path: polygon(0 0, 100% 0, 100% 45%, 0 45%); transform: translate(-0.025em, -0.0125em); opacity: 0.8; }
+                        .glitch span:last-child { animation: glitch 375ms infinite; clip-path: polygon(0 60%, 100% 60%, 100% 100%, 0 100%); transform: translate(0.0125em, 0.025em); opacity: 0.8; }
+
+                        @keyframes glitch {
+                          0% { text-shadow: 0.05em 0 0 rgba(168, 85, 247, 0.75), -0.05em -0.025em 0 rgba(34, 197, 94, 0.75), -0.025em 0.05em 0 rgba(236, 72, 153, 0.75); }
+                          14% { text-shadow: 0.05em 0 0 rgba(168, 85, 247, 0.75), -0.05em -0.025em 0 rgba(34, 197, 94, 0.75), -0.025em 0.05em 0 rgba(236, 72, 153, 0.75); }
+                          15% { text-shadow: -0.05em -0.025em 0 rgba(168, 85, 247, 0.75), 0.025em 0.025em 0 rgba(34, 197, 94, 0.75), -0.05em -0.05em 0 rgba(236, 72, 153, 0.75); }
+                          49% { text-shadow: -0.05em -0.025em 0 rgba(168, 85, 247, 0.75), 0.025em 0.025em 0 rgba(34, 197, 94, 0.75), -0.05em -0.05em 0 rgba(236, 72, 153, 0.75); }
+                          50% { text-shadow: 0.025em 0.05em 0 rgba(168, 85, 247, 0.75), 0.05em 0 0 rgba(34, 197, 94, 0.75), 0 -0.05em 0 rgba(236, 72, 153, 0.75); }
+                          99% { text-shadow: 0.025em 0.05em 0 rgba(168, 85, 247, 0.75), 0.05em 0 0 rgba(34, 197, 94, 0.75), 0 -0.05em 0 rgba(236, 72, 153, 0.75); }
+                          100% { text-shadow: -0.025em 0 0 rgba(168, 85, 247, 0.75), -0.025em -0.025em 0 rgba(34, 197, 94, 0.75), -0.025em -0.05em 0 rgba(236, 72, 153, 0.75); }
+                        }
+                        
+                        .scrollbar-hide::-webkit-scrollbar { display: none; }
+                        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+                        
+                        .animation-delay-300 { animation-delay: 300ms; }
+                        @keyframes fade-in { 0% { opacity: 0; } 100% { opacity: 1; } }
+                        @keyframes fade-in-down { 0% { opacity: 0; transform: translateY(-20px); } 100% { opacity: 1; transform: translateY(0); } }
+                        @keyframes fade-in-up { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
+                        .animate-fade-in { animation: fade-in 0.5s ease-out forwards; }
+                        .animate-fade-in-down { animation: fade-in-down 0.5s ease-out forwards; }
+                        .animate-fade-in-up { animation: fade-in-up 0.5s ease-out forwards; }
+
+                    `}
+                </style>
+                <WishlistContext.Consumer>
+                    {({ wishlist }) => (
+                        <Navbar
+                            onCartClick={() => setIsCartOpen(true)}
+                            onWishlistClick={() => alert('Wishlist feature coming soon!')}
+                            cartCount={cartCount}
+                            wishlistCount={wishlist.length}
+                            onSearch={setSearchQuery}
+                            theme={theme}
+                            toggleTheme={toggleTheme}
+                        />
+                    )}
+                </WishlistContext.Consumer>
+
+                <main>
+                    {page === 'home' && (
+                        <>
+                            <Hero />
+                            <CategoriesSection onSelectCategory={handleCategorySelect} />
+                            <ProductsGrid products={filteredProducts} onAddToCart={addToCart} onQuickView={setSelectedProduct} />
+                            <BestsellersSection products={mockProducts} onAddToCart={addToCart} onQuickView={setSelectedProduct} />
+                            <BundlesSection />
+                            <TestimonialsSection />
+                            <AboutSection />
+                            <NewsletterSection />
+                        </>
+                    )}
+                    {page === 'checkout' && (
+                        <CheckoutPage cart={cart} onBack={() => setPage('home')} onOrderPlaced={handleOrderPlaced} />
+                    )}
+                     {page === 'success' && (
+                        <OrderSuccessPage onBack={() => setPage('home')} />
+                    )}
+                </main>
+                
+                <Footer />
+
+                <CartDrawer
+                    isOpen={isCartOpen}
+                    onClose={() => setIsCartOpen(false)}
+                    cart={cart}
+                    updateQuantity={updateCartQuantity}
+                    removeFromCart={removeFromCart}
+                    setPage={setPage}
+                />
+
+                <ProductModal
+                    product={selectedProduct}
+                    onClose={() => setSelectedProduct(null)}
+                    onAddToCart={addToCart}
+                />
+            </div>
+        </WishlistProvider>
+    );
+}
+
